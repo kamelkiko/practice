@@ -1,6 +1,6 @@
-package com.kamel.practice.api
+package com.kamel.practice.api.dto
 
-import com.kamel.practice.api.ServerResponse.ResponseStatus
+import com.kamel.practice.api.dto.ServerResponse.ResponseStatus
 
 data class ServerResponse<T>(
     val data: T?,
