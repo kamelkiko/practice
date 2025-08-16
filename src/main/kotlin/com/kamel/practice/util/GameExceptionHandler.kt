@@ -8,29 +8,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GameExceptionHandler {
-    @ExceptionHandler(GameException::class)
+    @ExceptionHandler(CarException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
-    fun onGameException(exception: GameException): ServerResponse<String> {
-        return ServerResponse.error(
+    fun onCarException(exception: CarException): ServerResponse<String> {
+        return sendErrorResponse(
             errorMessage = exception.message ?: "An error occurred",
             code = HttpStatus.BAD_GATEWAY.value()
         )
     }
 
-    @ExceptionHandler(GameNotFoundException::class)
+    @ExceptionHandler(CarNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun onGameNotFoundException(exception: GameNotFoundException): ServerResponse<String> {
-        return ServerResponse.error(
-            errorMessage = exception.message ?: "Game not found",
+    fun onCarNotFoundException(exception: CarNotFoundException): ServerResponse<String> {
+        return sendErrorResponse(
+            errorMessage = exception.message ?: "Car not found",
             code = HttpStatus.NOT_FOUND.value()
         )
     }
 
-    @ExceptionHandler(GameAlreadyExistsException::class)
+    @ExceptionHandler(CarAlreadyExistsException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun onGameAlreadyExistsException(exception: GameAlreadyExistsException): ServerResponse<String> {
-        return ServerResponse.error(
-            errorMessage = exception.message ?: "Game already exists",
+    fun onCarAlreadyExistsException(exception: CarAlreadyExistsException): ServerResponse<String> {
+        return sendErrorResponse(
+            errorMessage = exception.message ?: "Car already exists",
             code = HttpStatus.BAD_REQUEST.value()
         )
     }
@@ -41,17 +41,10 @@ class GameExceptionHandler {
         val errors = ex.bindingResult.fieldErrors.associate {
             it.field to it.defaultMessage
         }.entries.joinToString()
-        return ServerResponse.error(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
+        return sendErrorResponse(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
     }
-
-//    @ExceptionHandler(InvalidGameDataException::class)
-//    fun onInvalidGameDataException(exception: InvalidGameDataException): String {
-//        return exception.message ?: "Invalid game data"
-//    }
 }
 
-
-open class GameException(message: String?) : RuntimeException(message)
-class GameNotFoundException(message: String?) : GameException(message)
-class GameAlreadyExistsException(message: String?) : GameException(message)
-class InvalidGameDataException(message: String?) : GameException(message)
+open class CarException(message: String?) : RuntimeException(message)
+class CarNotFoundException(message: String?) : CarException(message)
+class CarAlreadyExistsException(message: String?) : CarException(message)
