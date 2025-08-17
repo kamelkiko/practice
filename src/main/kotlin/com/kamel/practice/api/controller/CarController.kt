@@ -3,7 +3,9 @@ package com.kamel.practice.api.controller
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.service.CarService
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
@@ -11,7 +13,14 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/cars")
 class CarController(
     private val carService: CarService,
+    @Value("\${spring.application.version}")
+    private val version: String,
 ) {
+    @PostConstruct
+    fun printVersion() {
+        println(version)
+    }
+
     @GetMapping
     fun getAllCars(): ServerResponse<List<CarDto>> {
         val cars = carService.getAllCars()
