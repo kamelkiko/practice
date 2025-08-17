@@ -1,4 +1,4 @@
-package com.kamel.practice.domain
+package com.kamel.practice.domain.exception
 
 import com.kamel.practice.api.dto.ServerResponse
 import com.kamel.practice.api.dto.sendErrorResponse

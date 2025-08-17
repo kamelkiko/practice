@@ -21,5 +21,7 @@ interface CarRepository : MongoRepository<Car, ObjectId> {
 
     fun findByPriceBetween(minPrice: Double, maxPrice: Double): List<Car>
 
+    fun findByYearBetween(minYear: Int, maxYear: Int): List<Car>
+
     fun findByColor(color: String): List<Car>
 }
