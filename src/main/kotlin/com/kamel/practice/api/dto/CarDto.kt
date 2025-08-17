@@ -1,8 +1,9 @@
 package com.kamel.practice.api.dto
 
 import com.kamel.practice.data.model.Car
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
 import java.util.*
 
 data class CarDto(
@@ -10,13 +11,14 @@ data class CarDto(
     val code: String? = null,
     @field:NotBlank("brand can't be blank") val brand: String,
     @field:NotBlank("model can't be blank") val model: String,
-    @field:Size(min = 1900, max = 2025, message = "year should be between 1900 and 2025")
+    @field:Min(value = 1886, message = "year must be greater than or equal to 1886")
+    @field:Max(value = 2025, message = "year must be less than or equal to 2025")
     val year: Int,
-    @field:Size(min = 0, message = "price should be a positive number")
+    @field:Min(value = 0, message = "price must be greater than or equal to 0")
     val price: Double,
     val color: String? = null,
     val pictureUrl: String? = null,
-)
+) : java.io.Serializable
 
 fun CarDto.toEntity(): Car {
     return Car(

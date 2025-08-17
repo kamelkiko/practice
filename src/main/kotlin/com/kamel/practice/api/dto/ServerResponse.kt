@@ -6,12 +6,12 @@ data class ServerResponse<T>(
     val data: T?,
     val isSuccess: Boolean,
     val status: ResponseStatus,
-) {
+) : java.io.Serializable {
     data class ResponseStatus(
         val messageError: String? = null,
         val messageSuccess: String? = null,
         val code: Int?,
-    )
+    ) : java.io.Serializable
 }
 
 fun sendErrorResponse(errorMessage: String?, code: Int): ServerResponse<String> {

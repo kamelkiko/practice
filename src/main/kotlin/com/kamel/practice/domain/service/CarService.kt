@@ -4,21 +4,16 @@ import com.kamel.practice.data.model.Car
 import com.kamel.practice.data.repository.CarRepository
 import com.kamel.practice.domain.exception.CarNotFoundException
 import org.bson.types.ObjectId
-import org.springframework.cache.annotation.CacheEvict
-import org.springframework.cache.annotation.CachePut
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
 class CarService(
     private val carRepository: CarRepository
 ) {
-    @Cacheable(value = ["cars_all"])
     fun getAllCars() = carRepository.findAll()
 
     fun getCarByCode(code: String) = carRepository.findByCode(code)
 
-    @Cacheable(value = ["cars"], key = "#id")
     fun getCarById(id: String) = carRepository.findById(ObjectId(id))
 
     fun getCarByBrand(brand: String) = carRepository.findByBrand(brand)
@@ -40,7 +35,6 @@ class CarService(
 
     fun saveCar(car: Car) = carRepository.save(car)
 
-    @CachePut(value = ["cars"], key = "#id")
     fun updateCar(id: String, car: Car): Car {
         val existingCar = getCarById(id).orElseThrow { CarNotFoundException("Car with id $id not found") }
         val updatedCar = existingCar.copy(
@@ -55,6 +49,5 @@ class CarService(
         return carRepository.save(updatedCar)
     }
 
-    @CacheEvict(value = ["cars"], key = "#id")
     fun deleteCarById(id: String) = carRepository.deleteById(ObjectId(id))
 }

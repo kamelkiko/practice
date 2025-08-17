@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.CachePut
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -29,6 +32,7 @@ class CarController(
     }
 
     @GetMapping
+    @Cacheable(value = ["cars_all"])
     fun getAllCars(): ServerResponse<List<CarDto>> {
         val cars = carService.getAllCars()
         return sendSuccessResponse(
@@ -48,6 +52,7 @@ class CarController(
     }
 
     @GetMapping("/{id}")
+    @Cacheable(value = ["cars"], key = "#id")
     fun getCarById(
         @PathVariable id: String,
         request: HttpServletRequest,
@@ -152,13 +157,17 @@ class CarController(
         )
     }
 
-    @PostMapping
+    @PostMapping(
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
+    ) // cant send picture and body in the same request with application/json
     @ResponseStatus(HttpStatus.CREATED)
     fun saveCar(
         @Valid @RequestBody carDto: CarDto,
-        @RequestParam("file", required = false) file: MultipartFile
+        @RequestParam("file", required = false) file: MultipartFile?
     ): ServerResponse<CarDto> {
-        val fileName = fileService.saveFile(file)
+        val fileName = if (file != null) {
+            fileService.saveFile(file)
+        } else ""
         val car = carService.saveCar(carDto.copy(pictureUrl = fileName).toEntity())
         return sendSuccessResponse(
             data = car.toDto(),
@@ -169,6 +178,7 @@ class CarController(
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @CachePut(value = ["cars"], key = "#id")
     fun updateCar(
         @PathVariable id: String,
         @Valid @RequestBody carDto: CarDto,
@@ -182,6 +192,7 @@ class CarController(
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = ["cars"], key = "#id")
     fun deleteCarById(@PathVariable id: String): ServerResponse<Unit> {
         carService.deleteCarById(id)
         return sendSuccessResponse(
