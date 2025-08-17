@@ -3,16 +3,23 @@ package com.kamel.practice.api.controller
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.service.CarService
+import com.kamel.practice.domain.service.FileService
 import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/cars")
 class CarController(
     private val carService: CarService,
+    private val fileService: FileService,
     @Value("\${spring.application.version}")
     private val version: String,
 ) {
@@ -41,9 +48,23 @@ class CarController(
     }
 
     @GetMapping("/{id}")
-    fun getCarById(@PathVariable id: String): ServerResponse<CarDto> {
+    fun getCarById(
+        @PathVariable id: String,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ServerResponse<CarDto> {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
+        val contentType = car.pictureUrl?.let {
+            val resource = fileService.loadFile(it)
+            request.servletContext.getMimeType(resource.file.absolutePath)
+                ?: MediaType.APPLICATION_OCTET_STREAM_VALUE
+        }
+        response.contentType = contentType
+        response.addHeader(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"${fileService.loadFile(car.pictureUrl ?: "")}\""
+        )
         return sendSuccessResponse(
             data = car.toDto(),
             successMessage = "Car retrieved successfully."
@@ -133,8 +154,12 @@ class CarController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun saveCar(@Valid @RequestBody carDto: CarDto): ServerResponse<CarDto> {
-        val car = carService.saveCar(carDto.toEntity())
+    fun saveCar(
+        @Valid @RequestBody carDto: CarDto,
+        @RequestParam("file", required = false) file: MultipartFile
+    ): ServerResponse<CarDto> {
+        val fileName = fileService.saveFile(file)
+        val car = carService.saveCar(carDto.copy(pictureUrl = fileName).toEntity())
         return sendSuccessResponse(
             data = car.toDto(),
             successMessage = "Car saved successfully.",
@@ -146,7 +171,7 @@ class CarController(
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun updateCar(
         @PathVariable id: String,
-        @Valid @RequestBody carDto: CarDto
+        @Valid @RequestBody carDto: CarDto,
     ): ServerResponse<CarDto> {
         val updatedCar = carService.updateCar(id, carDto.toEntity())
         return sendSuccessResponse(
