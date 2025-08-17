@@ -37,6 +37,15 @@ class GameExceptionHandler {
         )
     }
 
+    @ExceptionHandler(FileNotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun onFileNotFoundException(exception: FileNotFoundException): ServerResponse<String> {
+        return sendErrorResponse(
+            errorMessage = exception.message ?: "File not found",
+            code = HttpStatus.NOT_FOUND.value()
+        )
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleValidationExceptions(ex: MethodArgumentNotValidException): ServerResponse<String> {
@@ -50,3 +59,4 @@ class GameExceptionHandler {
 open class CarException(message: String?) : RuntimeException(message)
 class CarNotFoundException(message: String?) : CarException(message)
 class CarAlreadyExistsException(message: String?) : CarException(message)
+class FileNotFoundException(message: String?) : CarException(message)
