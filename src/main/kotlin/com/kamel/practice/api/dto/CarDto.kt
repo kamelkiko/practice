@@ -1,14 +1,18 @@
 package com.kamel.practice.api.dto
 
 import com.kamel.practice.data.model.Car
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.util.*
 
 data class CarDto(
     val id: String? = null,
     val code: String? = null,
-    val brand: String,
-    val model: String,
+    @field:NotBlank("brand can't be blank") val brand: String,
+    @field:NotBlank("model can't be blank") val model: String,
+    @field:Size(min = 1900, max = 2025, message = "year should be between 1900 and 2025")
     val year: Int,
+    @field:Size(min = 0, message = "price should be a positive number")
     val price: Double,
     val color: String? = null,
     val pictureUrl: String? = null,

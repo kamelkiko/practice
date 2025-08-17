@@ -3,6 +3,7 @@ package com.kamel.practice.api.controller
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.service.CarService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
@@ -123,7 +124,7 @@ class CarController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun saveCar(@RequestBody carDto: CarDto): ServerResponse<CarDto> {
+    fun saveCar(@Valid @RequestBody carDto: CarDto): ServerResponse<CarDto> {
         val car = carService.saveCar(carDto.toEntity())
         return sendSuccessResponse(
             data = car.toDto(),
@@ -136,7 +137,7 @@ class CarController(
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun updateCar(
         @PathVariable id: String,
-        @RequestBody carDto: CarDto
+        @Valid @RequestBody carDto: CarDto
     ): ServerResponse<CarDto> {
         val updatedCar = carService.updateCar(id, carDto.toEntity())
         return sendSuccessResponse(
