@@ -9,15 +9,9 @@ import com.kamel.practice.util.GameAlreadyExistsException
 import com.kamel.practice.util.GameNotFoundException
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-
-@ConfigurationProperties(prefix = "car")
-data class Config(
-    val name: String,
-)
 
 @RestController
 @RequestMapping("/games")
@@ -27,11 +21,9 @@ class GameController(
     @param:Value("\${SPRING_PROFILES_ACTIVE}")
     private val version: String,
     private val emailSenderService: EmailSenderService,
-    config: Config,
 ) {
     init {
         println(version)
-        println(config)
     }
 
     @PostMapping("/send-simple-email")

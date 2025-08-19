@@ -1,9 +1,7 @@
 package com.kamel.practice
 
-import com.kamel.practice.controller.Config
 import com.kamel.practice.controller.GameWebSocketHandler
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -13,9 +11,6 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 @SpringBootApplication
-@EnableConfigurationProperties(
-    Config::class
-)
 class SpringBootPracticeApplication
 
 fun main(args: Array<String>) {
