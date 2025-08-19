@@ -8,13 +8,17 @@ import com.kamel.practice.domain.exception.FileNotFoundException
 import com.kamel.practice.domain.service.car.CarService
 import com.kamel.practice.domain.service.storage.ImageService
 import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletResponse
 import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+
 
 @RestController
 @RequestMapping("/cars")
@@ -50,22 +54,25 @@ class CarController(
         )
     }
 
-    @GetMapping("/{id}")
-    fun getCarById(
+    @GetMapping("/{id}/download")
+    fun downloadCarImageById(
         @PathVariable id: String,
-    ): ServerResponse<CarDto> {
+        response: HttpServletResponse,
+    ): Resource {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
-//        val contentType = car.pictureUrl?.let {
-//            val resource = imageService.loadFile(it)
-//            request.servletContext.getMimeType(resource.file.absolutePath)
-//                ?: MediaType.APPLICATION_OCTET_STREAM_VALUE
-//        }
-//        response.contentType = contentType
-//        response.addHeader(
-//            HttpHeaders.CONTENT_DISPOSITION,
-//            "attachment; filename=\"${imageService.loadFile(car.pictureUrl ?: "")}\""
-//        )
+        val metadata = imageService.getImageMetadata(car.id.toHexString())
+        val resource: Resource = imageService.getImageResource(car.id.toHexString())
+        response.contentType = metadata.mimeType
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalName + "\"")
+        response.setContentLengthLong(metadata.size)
+        return resource
+    }
+
+    @GetMapping("/{id}")
+    fun getCarById(@PathVariable id: String): ServerResponse<CarDto> {
+        val car = carService.getCarById(id)
+            .orElseThrow { CarNotFoundException("Car with id $id not found.") }
         return sendSuccessResponse(
             data = car.toDto(),
             successMessage = "Car retrieved successfully."

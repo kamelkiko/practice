@@ -2,7 +2,6 @@ package com.kamel.practice.domain.service.storage
 
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.data.repository.ImageMetadataRepository
-import org.bson.types.ObjectId
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -61,15 +60,14 @@ class ImageService(
     }
 
     @Throws(IOException::class)
-    fun getImageResource(imageId: String): Resource {
-        val metadata: ImageMetadata = getImageMetadata(imageId)
+    fun getImageResource(ownerId: String): Resource {
+        val metadata: ImageMetadata = getImageMetadata(ownerId)
         return storageService.getFileResource(metadata.storedName)
     }
 
     @Throws(IOException::class)
-    fun getImageMetadata(imageId: String): ImageMetadata {
-        val objectId = ObjectId(imageId)
-        return repository.findById(objectId).orElseThrow { FileNotFoundException("File not found.") }
+    fun getImageMetadata(ownerId: String): ImageMetadata {
+        return repository.findByOwnerId(ownerId) ?: throw FileNotFoundException("File not found.")
     }
 
     private fun validateImage(file: MultipartFile) {
