@@ -47,7 +47,7 @@ class CarController(
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
         val resource: Resource = imageService.getImageResource(car.id.toHexString())
-        emailSenderService.sendEmail(
+        emailSenderService.sendEmailWithAttachment(
             to = emailRequest.to,
             subject = emailRequest.subject,
             body = emailRequest.body,
