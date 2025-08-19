@@ -2,7 +2,6 @@ package com.kamel.practice.domain.service.storage
 
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.data.repository.ImageMetadataRepository
-import com.kamel.practice.domain.exception.CarNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
@@ -41,9 +40,10 @@ class ImageService(
     fun replaceImage(ownerId: String, file: MultipartFile): ImageMetadata {
         validateImage(file)
         val existingMetadata = repository.findByOwnerId(ownerId)
-            ?: throw CarNotFoundException("No image found for owner with ID $ownerId.")
-        storageService.deleteFile(existingMetadata.storedName)
-        repository.deleteById(existingMetadata.id)
+        existingMetadata?.let {
+            storageService.deleteFile(it.storedName)
+            repository.deleteById(it.id)
+        }
         val storagePath: String?
         file.inputStream.use { inputStream ->
             storagePath = storageService.storeFile(inputStream, file.originalFilename!!)

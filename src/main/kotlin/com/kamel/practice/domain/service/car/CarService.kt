@@ -67,4 +67,10 @@ class CarService(
 
         return results.mappedResults
     }
+
+    fun updateCarImage(carId: String, imageUrl: String): Car {
+        val car = getCarById(carId).orElseThrow { CarNotFoundException("Car with id $carId not found") }
+        val updatedCar = car.copy(pictureUrl = imageUrl)
+        return carRepository.save(updatedCar)
+    }
 }

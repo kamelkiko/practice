@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
+import com.kamel.practice.domain.exception.FileNotFoundException
 import com.kamel.practice.domain.service.car.CarService
 import com.kamel.practice.domain.service.storage.ImageService
 import jakarta.annotation.PostConstruct
@@ -188,6 +189,24 @@ class CarController(
         val updatedCar = carService.updateCar(id, carDto.copy(pictureUrl = imageMetaData?.storedName).toEntity())
         return sendSuccessResponse(
             data = updatedCar.toDto(),
+            successMessage = "Car updated successfully.",
+            code = HttpStatus.ACCEPTED.value()
+        )
+    }
+
+    @PatchMapping("/{id}/update-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @Transactional
+    fun updateCarImage(
+        @PathVariable id: String,
+        @RequestParam("file", required = false) file: MultipartFile?
+    ): ServerResponse<String> {
+        val imageMetaData = file?.let {
+            imageService.replaceImage(id, it)
+        } ?: throw FileNotFoundException("Image file not found for car with ID $id.")
+        carService.updateCarImage(id, imageMetaData.storedName)
+        return sendSuccessResponse(
+            data = imageMetaData.storedName,
             successMessage = "Car updated successfully.",
             code = HttpStatus.ACCEPTED.value()
         )
