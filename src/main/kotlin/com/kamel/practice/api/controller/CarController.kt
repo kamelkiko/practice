@@ -7,6 +7,7 @@ import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.exception.FileNotFoundException
 import com.kamel.practice.domain.service.car.CarService
 import com.kamel.practice.domain.service.storage.ImageService
+import com.kamel.practice.domain.util.CarDtoValidator
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
 import org.bson.types.ObjectId
@@ -25,8 +26,9 @@ import org.springframework.web.multipart.MultipartFile
 class CarController(
     private val carService: CarService,
     private val imageService: ImageService,
-    @Value("\${spring.application.version}")
+    @Value($$"${spring.application.version}")
     private val version: String,
+    private val carDtoValidator: CarDtoValidator
 ) {
     @PostConstruct
     fun printVersion() {
@@ -168,6 +170,7 @@ class CarController(
         @RequestParam("file", required = false) file: MultipartFile?
     ): ServerResponse<CarDto> {
         val carDto = objectMapper.readValue(jsonData, CarDto::class.java)
+        carDtoValidator.validate(carDto)
         val id = ObjectId.get()
         val imageMetaData = file?.let {
             imageService.uploadImage(it, id.toHexString())
@@ -190,6 +193,7 @@ class CarController(
     ): ServerResponse<CarDto> {
         val carDto = objectMapper.readValue(jsonData, CarDto::class.java)
             ?: throw CarNotFoundException("Invalid car data provided.")
+        carDtoValidator.validate(carDto)
         val imageMetaData = file?.let {
             imageService.replaceImage(id, it)
         }
@@ -216,6 +220,15 @@ class CarController(
             data = imageMetaData.storedName,
             successMessage = "Car updated successfully.",
             code = HttpStatus.ACCEPTED.value()
+        )
+    }
+
+    @GetMapping("/brand-count")
+    fun getCarCountByBrand(): ServerResponse<List<BrandCountDto>> {
+        val brandCounts = carService.getCarCountByBrand()
+        return sendSuccessResponse(
+            data = brandCounts,
+            successMessage = "Car counts by brand retrieved successfully."
         )
     }
 

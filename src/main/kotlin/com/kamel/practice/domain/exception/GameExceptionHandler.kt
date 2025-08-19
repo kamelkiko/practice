@@ -3,6 +3,7 @@ package com.kamel.practice.domain.exception
 import com.kamel.practice.api.dto.ServerResponse
 import com.kamel.practice.api.dto.sendErrorResponse
 import com.kamel.practice.api.dto.sendErrorResponseWithData
+import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -72,6 +73,20 @@ class GameExceptionHandler {
         val errorMap = mutableMapOf<String, String>()
         ex.bindingResult.fieldErrors.forEach { error ->
             errorMap[error.field] = error.defaultMessage ?: DEFAULT_VALIDATION_ERROR_MESSAGE
+        }
+        return sendErrorResponseWithData(
+            data = errorMap,
+            errorMessage = DEFAULT_VALIDATION_ERROR_MESSAGE,
+            code = HttpStatus.BAD_REQUEST.value()
+        )
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleConstraintViolationException(ex: ConstraintViolationException): ServerResponse<Map<String, String>> {
+        val errorMap = mutableMapOf<String, String>()
+        ex.constraintViolations.forEach { violation ->
+            errorMap[violation.propertyPath.toString()] = violation.message
         }
         return sendErrorResponseWithData(
             data = errorMap,
