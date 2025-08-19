@@ -2,7 +2,7 @@ package com.kamel.practice.api.controller
 
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
-import com.kamel.practice.domain.service.CarService
+import com.kamel.practice.domain.service.car.CarService
 import com.kamel.practice.domain.service.FileService
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest

@@ -22,6 +22,14 @@ fun sendErrorResponse(errorMessage: String?, code: Int): ServerResponse<String> 
     )
 }
 
+inline fun <reified T> sendErrorResponseWithData(data: T?, errorMessage: String?, code: Int): ServerResponse<T> {
+    return ServerResponse(
+        data = data,
+        isSuccess = false,
+        status = ResponseStatus(messageError = errorMessage, code = code)
+    )
+}
+
 inline fun <reified T> sendSuccessResponse(data: T, successMessage: String?, code: Int = 200): ServerResponse<T> {
     return ServerResponse(
         data = data,

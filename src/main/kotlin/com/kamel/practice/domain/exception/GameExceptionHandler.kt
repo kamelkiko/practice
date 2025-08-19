@@ -2,11 +2,13 @@ package com.kamel.practice.domain.exception
 
 import com.kamel.practice.api.dto.ServerResponse
 import com.kamel.practice.api.dto.sendErrorResponse
+import com.kamel.practice.api.dto.sendErrorResponseWithData
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.io.IOException
 
 @RestControllerAdvice
 class GameExceptionHandler {
@@ -46,13 +48,40 @@ class GameExceptionHandler {
         )
     }
 
+    @ExceptionHandler(IOException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun onIOException(exception: IOException): ServerResponse<String> {
+        return sendErrorResponse(
+            errorMessage = exception.message ?: "Something happen",
+            code = HttpStatus.BAD_REQUEST.value()
+        )
+    }
+
+    @ExceptionHandler(RuntimeException::class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    fun onRunTimeException(exception: RuntimeException): ServerResponse<String> {
+        return sendErrorResponse(
+            errorMessage = exception.message ?: "An error occurred",
+            code = HttpStatus.INTERNAL_SERVER_ERROR.value()
+        )
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun handleValidationExceptions(ex: MethodArgumentNotValidException): ServerResponse<String> {
-        val errors = ex.bindingResult.fieldErrors.associate {
-            it.field to it.defaultMessage
-        }.entries.joinToString()
-        return sendErrorResponse(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
+    fun handleValidationExceptions(ex: MethodArgumentNotValidException): ServerResponse<Map<String, String>> {
+        val errorMap = mutableMapOf<String, String>()
+        ex.bindingResult.fieldErrors.forEach { error ->
+            errorMap[error.field] = error.defaultMessage ?: DEFAULT_VALIDATION_ERROR_MESSAGE
+        }
+        return sendErrorResponseWithData(
+            data = errorMap,
+            errorMessage = DEFAULT_VALIDATION_ERROR_MESSAGE,
+            code = HttpStatus.BAD_REQUEST.value()
+        )
+    }
+
+    companion object {
+        private const val DEFAULT_VALIDATION_ERROR_MESSAGE = "Validation failed"
     }
 }
 

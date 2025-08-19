@@ -1,4 +1,4 @@
-package com.kamel.practice.domain.service
+package com.kamel.practice.domain.service.email
 
 import org.springframework.core.io.ClassPathResource
 import org.springframework.mail.javamail.JavaMailSender

@@ -1,4 +1,4 @@
-package com.kamel.practice.domain.service
+package com.kamel.practice.domain.service.car
 
 import com.kamel.practice.api.dto.BrandCountDto
 import com.kamel.practice.data.model.Car
@@ -7,8 +7,6 @@ import com.kamel.practice.domain.exception.CarNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
-import org.springframework.data.mongodb.core.aggregation.Aggregation.group
-import org.springframework.data.mongodb.core.aggregation.Aggregation.project
 import org.springframework.data.mongodb.core.aggregation.AggregationResults
 import org.springframework.stereotype.Service
 
@@ -60,8 +58,8 @@ class CarService(
 
     fun getCarCountByBrand(): List<BrandCountDto> {
         val aggregation = Aggregation.newAggregation(
-            group("brand").count().`as`("total"),
-            project("total").and("brand").previousOperation()
+            Aggregation.group("brand").count().`as`("total"),
+            Aggregation.project("total").and("brand").previousOperation()
         )
 
         val results: AggregationResults<BrandCountDto> =
