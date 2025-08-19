@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImageMetadataRepository : MongoRepository<ImageMetadata, ObjectId> {
-    fun findByCarId(carId: String): ImageMetadata
+    fun findByOwnerId(ownerId: String): ImageMetadata?
+    fun deleteByOwnerId(ownerId: String): Long
 }

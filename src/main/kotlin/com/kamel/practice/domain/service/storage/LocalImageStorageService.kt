@@ -42,6 +42,22 @@ class LocalImageStorageService(properties: ImageStorageProperties) {
     }
 
     @Throws(IOException::class)
+    fun deleteFile(storedPath: String) {
+        val filePath = rootPath.resolve(storedPath).normalize().toAbsolutePath()
+        val normalizedRoot = rootPath.normalize().toAbsolutePath()
+
+        if (!filePath.startsWith(normalizedRoot)) {
+            throw SecurityException("Access denied")
+        }
+
+        if (!Files.exists(filePath)) {
+            throw FileNotFoundException("File not found")
+        }
+
+        Files.delete(filePath)
+    }
+
+    @Throws(IOException::class)
     fun getFileResource(storedPath: String): Resource {
         val filePath = rootPath.resolve(storedPath).normalize().toAbsolutePath()
         val normalizedRoot = rootPath.normalize().toAbsolutePath()

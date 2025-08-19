@@ -11,7 +11,7 @@ data class ImageMetadata(
     val originalName: String,
     val storedName: String,
     val mimeType: String,
-    val cardId: String,
+    val ownerId: String,
     val size: Long,
     val createdAt: Instant,
 )

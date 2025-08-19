@@ -4,6 +4,7 @@ import com.kamel.practice.data.model.Car
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import org.bson.types.ObjectId
 import java.util.*
 
 data class CarDto(
@@ -20,10 +21,11 @@ data class CarDto(
     val pictureUrl: String? = null,
 ) : java.io.Serializable
 
-fun CarDto.toEntity(): Car {
+fun CarDto.toEntity(objectId: ObjectId? = null): Car {
     return Car(
         code = code ?: createRandomCode(model),
         brand = brand,
+        id = objectId ?: ObjectId.get(),
         model = model,
         year = year,
         price = price,

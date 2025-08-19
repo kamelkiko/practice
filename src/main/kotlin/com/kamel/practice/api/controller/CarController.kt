@@ -1,24 +1,25 @@
 package com.kamel.practice.api.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.service.car.CarService
-import com.kamel.practice.domain.service.FileService
+import com.kamel.practice.domain.service.storage.ImageService
 import jakarta.annotation.PostConstruct
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-import jakarta.validation.Valid
+import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/cars")
 class CarController(
     private val carService: CarService,
-    private val fileService: FileService,
+    private val imageService: ImageService,
     @Value("\${spring.application.version}")
     private val version: String,
 ) {
@@ -26,6 +27,8 @@ class CarController(
     fun printVersion() {
         println(version)
     }
+
+    private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
 
     @GetMapping
     fun getAllCars(): ServerResponse<List<CarDto>> {
@@ -49,21 +52,19 @@ class CarController(
     @GetMapping("/{id}")
     fun getCarById(
         @PathVariable id: String,
-        request: HttpServletRequest,
-        response: HttpServletResponse
     ): ServerResponse<CarDto> {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
-        val contentType = car.pictureUrl?.let {
-            val resource = fileService.loadFile(it)
-            request.servletContext.getMimeType(resource.file.absolutePath)
-                ?: MediaType.APPLICATION_OCTET_STREAM_VALUE
-        }
-        response.contentType = contentType
-        response.addHeader(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"${fileService.loadFile(car.pictureUrl ?: "")}\""
-        )
+//        val contentType = car.pictureUrl?.let {
+//            val resource = imageService.loadFile(it)
+//            request.servletContext.getMimeType(resource.file.absolutePath)
+//                ?: MediaType.APPLICATION_OCTET_STREAM_VALUE
+//        }
+//        response.contentType = contentType
+//        response.addHeader(
+//            HttpHeaders.CONTENT_DISPOSITION,
+//            "attachment; filename=\"${imageService.loadFile(car.pictureUrl ?: "")}\""
+//        )
         return sendSuccessResponse(
             data = car.toDto(),
             successMessage = "Car retrieved successfully."
@@ -151,32 +152,40 @@ class CarController(
         )
     }
 
-    @PostMapping(
-//        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
-    ) // cant send picture and body in the same request with application/json
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     fun saveCar(
-        @Valid @RequestBody carDto: CarDto,
-        // @RequestParam("file", required = false) file: MultipartFile?
+        @RequestParam("car", required = true) jsonData: String,
+        @RequestParam("file", required = false) file: MultipartFile?
     ): ServerResponse<CarDto> {
-//        val fileName = if (file != null) {
-//            fileService.saveFile(file)
-//        } else ""
-        val car = carService.saveCar(carDto.copy().toEntity())
+        val carDto = objectMapper.readValue(jsonData, CarDto::class.java)
+        val id = ObjectId.get()
+        val imageMetaData = file?.let {
+            imageService.uploadImage(it, id.toHexString())
+        }
+        val car = carService.saveCar(carDto.copy(pictureUrl = imageMetaData?.storedName).toEntity(id))
         return sendSuccessResponse(
-            data = car.toDto(),
+            data = car.copy(pictureUrl = imageMetaData?.storedName).toDto(),
             successMessage = "Car saved successfully.",
             code = HttpStatus.CREATED.value()
         )
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Transactional
     fun updateCar(
         @PathVariable id: String,
-        @Valid @RequestBody carDto: CarDto,
+        @RequestParam("car", required = true) jsonData: String,
+        @RequestParam("file", required = false) file: MultipartFile?
     ): ServerResponse<CarDto> {
-        val updatedCar = carService.updateCar(id, carDto.toEntity())
+        val carDto = objectMapper.readValue(jsonData, CarDto::class.java)
+            ?: throw CarNotFoundException("Invalid car data provided.")
+        val imageMetaData = file?.let {
+            imageService.replaceImage(id, it)
+        }
+        val updatedCar = carService.updateCar(id, carDto.copy(pictureUrl = imageMetaData?.storedName).toEntity())
         return sendSuccessResponse(
             data = updatedCar.toDto(),
             successMessage = "Car updated successfully.",
