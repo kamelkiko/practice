@@ -39,8 +39,8 @@ class CarController(
 
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
 
-    @PostMapping("/{id}/send-email")
-    fun sendCarDetailsByEmail(
+    @PostMapping("/{id}/send-email-attachment")
+    fun sendCarImageByEmail(
         @PathVariable id: String,
         @RequestBody emailRequest: EmailRequestDto
     ): ServerResponse<String> {
@@ -52,6 +52,25 @@ class CarController(
             subject = emailRequest.subject,
             body = emailRequest.body,
             resource = resource
+        )
+        return sendSuccessResponse(
+            data = "Email sent successfully to ${emailRequest.to}.",
+            successMessage = "Car details sent successfully."
+        )
+    }
+
+    @PostMapping("/{id}/send-email")
+    fun sendCardDetailsByEmail(
+        @PathVariable id: String,
+        @RequestBody emailRequest: EmailRequestDto,
+    ): ServerResponse<String> {
+        val car = carService.getCarById(id)
+            .orElseThrow { CarNotFoundException("Car with id $id not found.") }
+        val carDto = car.toDto()
+        emailSenderService.sendEmail(
+            to = emailRequest.to,
+            subject = emailRequest.subject,
+            body = emailRequest.body + "\nCar Details:\n\n$carDto"
         )
         return sendSuccessResponse(
             data = "Email sent successfully to ${emailRequest.to}.",
