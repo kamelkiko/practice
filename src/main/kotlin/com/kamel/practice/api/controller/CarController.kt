@@ -6,6 +6,7 @@ import com.kamel.practice.api.dto.*
 import com.kamel.practice.domain.exception.CarNotFoundException
 import com.kamel.practice.domain.exception.FileNotFoundException
 import com.kamel.practice.domain.service.car.CarService
+import com.kamel.practice.domain.service.email.EmailSenderService
 import com.kamel.practice.domain.service.storage.ImageService
 import com.kamel.practice.domain.util.CarDtoValidator
 import jakarta.annotation.PostConstruct
@@ -28,7 +29,8 @@ class CarController(
     private val imageService: ImageService,
     @Value($$"${spring.application.version}")
     private val version: String,
-    private val carDtoValidator: CarDtoValidator
+    private val carDtoValidator: CarDtoValidator,
+    private val emailSenderService: EmailSenderService,
 ) {
     @PostConstruct
     fun printVersion() {
@@ -36,6 +38,26 @@ class CarController(
     }
 
     private val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+
+    @PostMapping("/{id}/send-email")
+    fun sendCarDetailsByEmail(
+        @PathVariable id: String,
+        @RequestBody emailRequest: EmailRequestDto
+    ): ServerResponse<String> {
+        val car = carService.getCarById(id)
+            .orElseThrow { CarNotFoundException("Car with id $id not found.") }
+        val resource: Resource = imageService.getImageResource(car.id.toHexString())
+        emailSenderService.sendEmail(
+            to = emailRequest.to,
+            subject = emailRequest.subject,
+            body = emailRequest.body,
+            resource = resource
+        )
+        return sendSuccessResponse(
+            data = "Email sent successfully to ${emailRequest.to}.",
+            successMessage = "Car details sent successfully."
+        )
+    }
 
     @GetMapping
     fun getAllCars(): ServerResponse<List<CarDto>> {
