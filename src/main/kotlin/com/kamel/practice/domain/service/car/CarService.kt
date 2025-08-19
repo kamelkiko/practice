@@ -5,7 +5,6 @@ import com.kamel.practice.data.model.Car
 import com.kamel.practice.data.repository.CarRepository
 import com.kamel.practice.domain.exception.CarNotFoundException
 import org.bson.types.ObjectId
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.AggregationResults
@@ -18,10 +17,8 @@ class CarService(
 ) {
     fun getAllCars() = carRepository.findAll()
 
-    @Cacheable(value = ["users"], key = "#id")
     fun getCarByCode(code: String) = carRepository.findByCode(code)
 
-    @Cacheable(value = ["users"], key = "#id")
     fun getCarById(id: String) = carRepository.findById(ObjectId(id))
 
     fun getCarByBrand(brand: String) = carRepository.findByBrand(brand)
