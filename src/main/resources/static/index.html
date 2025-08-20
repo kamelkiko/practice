@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot WebSocket Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .room-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .connection-form {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group input, .form-group select, .form-group button {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            flex: 1;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.own {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.other {
+            background: white;
+            border: 1px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .message.system {
+            background: #17a2b8;
+            color: white;
+            margin: 10px auto;
+            text-align: center;
+            max-width: 50%;
+            font-style: italic;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .message-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            border-radius: 25px;
+        }
+
+        .users-list {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            min-width: 150px;
+            z-index: 1000;
+        }
+
+        .users-list.hidden {
+            display: none;
+        }
+
+        .user-item {
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .typing-indicator {
+            padding: 10px 20px;
+            font-style: italic;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .status {
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>Spring Boot WebSocket Chat</h1>
+        <div class="room-info">
+            <span id="room-name">Select a room to start chatting</span>
+            <span id="user-count" onclick="toggleUsersList()" style="cursor: pointer;">👥 0 users</span>
+            <div id="users-list" class="users-list hidden"></div>
+        </div>
+    </div>
+
+    <div id="connection-form" class="connection-form">
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Enter your username" required>
+            <select id="room-select">
+                <option value="">Select a room...</option>
+            </select>
+            <button class="btn" onclick="loadRooms()">🔄 Refresh Rooms</button>
+        </div>
+        <div class="form-group">
+            <input type="text" id="new-room-name" placeholder="Create new room">
+            <button class="btn" onclick="createRoom()">Create Room</button>
+            <button class="btn" id="connect-btn" onclick="connect()">Connect</button>
+        </div>
+    </div>
+
+    <div id="status" class="status disconnected">Disconnected</div>
+
+    <div id="messages" class="messages-container"></div>
+
+    <div id="typing" class="typing-indicator"></div>
+
+    <div class="message-input-container" style="display: none;" id="message-input-container">
+        <input type="text" id="message-input" class="message-input" placeholder="Type your message..."
+               onkeypress="handleKeyPress(event)">
+        <button class="btn send-btn" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    let stompClient = null;
+    let currentUsername = null;
+    let currentRoomId = null;
+    let typingTimer = null;
+    let isTyping = false;
+
+    // Load available rooms on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRooms();
+    });
+
+    async function loadRooms() {
+        try {
+            const response = await fetch('http://localhost:8080/api/chat/rooms');
+            const rooms = await response.json();
+            const roomSelect = document.getElementById('room-select');
+
+            roomSelect.innerHTML = '<option value="">Select a room...</option>';
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.name} (${room.activeUsers} users)`;
+                roomSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading rooms:', error);
+        }
+    }
+
+    async function createRoom() {
+        const roomName = document.getElementById('new-room-name').value.trim();
+        const username = document.getElementById('username').value.trim();
+
+        if (!roomName || !username) {
+            alert('Please enter both username and room name');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/api/chat/rooms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: roomName,
+                    description: `Created by ${username}`,
+                    createdBy: username
+                })
+            });
+
+            if (response.ok) {
+                const room = await response.json();
+                document.getElementById('new-room-name').value = '';
+                loadRooms();
+
+                // Select the newly created room
+                setTimeout(() => {
+                    document.getElementById('room-select').value = room.id;
+                }, 500);
+            } else {
+                const error = await response.json();
+                alert(`Error creating room: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error creating room:', error);
+            alert('Error creating room');
+        }
+    }
+
+    function connect() {
+        const username = document.getElementById('username').value.trim();
+        const roomId = document.getElementById('room-select').value;
+
+        if (!username || !roomId) {
+            alert('Please enter username and select a room');
+            return;
+        }
+
+        currentUsername = username;
+        currentRoomId = roomId;
+
+        const socket = new SockJS('http://localhost:8080/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            updateStatus('connected');
+
+            // Subscribe to room messages
+            stompClient.subscribe(`/topic/room/${roomId}`, function (message) {
+                const msg = JSON.parse(message.body);
+                displayMessage(msg);
+            });
+
+            // Subscribe to user list updates
+            stompClient.subscribe(`/topic/room/${roomId}/users`, function (message) {
+                const data = JSON.parse(message.body);
+                updateUsersList(data.users);
+            });
+
+            // Subscribe to typing indicators
+            stompClient.subscribe(`/topic/room/${roomId}/typing`, function (message) {
+                const data = JSON.parse(message.body);
+                if (data.username !== currentUsername) {
+                    showTypingIndicator(data.username, data.isTyping);
+                }
+            });
+
+            // Subscribe to private messages
+            stompClient.subscribe(`/user/queue/private`, function (message) {
+                const msg = JSON.parse(message.body);
+                displayPrivateMessage(msg);
+            });
+
+            // Subscribe to errors
+            stompClient.subscribe(`/user/queue/errors`, function (message) {
+                const error = JSON.parse(message.body);
+                alert(`Error: ${error.error}`);
+            });
+
+            // Subscribe to user list
+            stompClient.subscribe(`/user/queue/users`, function (message) {
+                const data = JSON.parse(message.body);
+                updateUsersList(data.users);
+            });
+
+            // Add user to room
+            stompClient.send('/app/chat.addUser', {}, JSON.stringify({
+                sender: username,
+                content: '',
+                roomId: roomId,
+                type: 'JOIN'
+            }));
+
+            // Load recent messages
+            loadRecentMessages(roomId);
+
+        }, function (error) {
+            console.log('Connection error: ' + error);
+            updateStatus('disconnected');
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        updateStatus('disconnected');
+        currentUsername = null;
+        currentRoomId = null;
+    }
+
+    async function loadRecentMessages(roomId) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/chat/rooms/${roomId}/messages?limit=20`);
+            const messages = await response.json();
+
+            messages.forEach(msg => {
+                displayMessage(msg, false);
+            });
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const content = messageInput.value.trim();
+
+        if (content && stompClient && currentRoomId) {
+            stompClient.send('/app/chat.sendMessage', {}, JSON.stringify({
+                sender: currentUsername,
+                content: content,
+                roomId: currentRoomId,
+                type: 'CHAT'
+            }));
+
+            messageInput.value = '';
+            stopTyping();
+        }
+    }
+
+    function displayMessage(message, animate = true) {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+
+        let messageClass = 'message ';
+        if (message.type === 'JOIN' || message.type === 'LEAVE') {
+            messageClass += 'system';
+        } else if (message.sender === currentUsername) {
+            messageClass += 'own';
+        } else {
+            messageClass += 'other';
+        }
+
+        messageDiv.className = messageClass;
+
+        let messageHtml = '';
+        if (message.type === 'CHAT') {
+            if (message.sender !== currentUsername) {
+                messageHtml += `<div class="message-sender">${message.sender}</div>`;
+            }
+            messageHtml += `<div>${message.content}</div>`;
+        } else {
+            messageHtml = message.content;
+        }
+
+        messageHtml += `<div class="message-time">${formatTime(message.timestamp)}</div>`;
+        messageDiv.innerHTML = messageHtml;
+
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function displayPrivateMessage(message) {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message other';
+        messageDiv.innerHTML = `
+            <div class="message-sender">🔒 ${message.sender} (private)</div>
+            <div>${message.content}</div>
+            <div class="message-time">${formatTime(new Date())}</div>
+        `;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function updateStatus(status) {
+        const statusDiv = document.getElementById('status');
+        const connectionForm = document.getElementById('connection-form');
+        const messageInputContainer = document.getElementById('message-input-container');
+
+        if (status === 'connected') {
+            statusDiv.textContent = 'Connected';
+            statusDiv.className = 'status connected';
+            connectionForm.style.display = 'none';
+            messageInputContainer.style.display = 'flex';
+
+            const roomSelect = document.getElementById('room-select');
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            document.getElementById('room-name').textContent = selectedOption.textContent.split(' (')[0];
+        } else {
+            statusDiv.textContent = 'Disconnected';
+            statusDiv.className = 'status disconnected';
+            connectionForm.style.display = 'block';
+            messageInputContainer.style.display = 'none';
+            document.getElementById('room-name').textContent = 'Select a room to start chatting';
+            document.getElementById('user-count').textContent = '👥 0 users';
+            document.getElementById('messages').innerHTML = '';
+        }
+    }
+
+    function updateUsersList(users) {
+        const userCount = document.getElementById('user-count');
+        const usersList = document.getElementById('users-list');
+
+        userCount.textContent = `👥 ${users.length} users`;
+
+        usersList.innerHTML = '';
+        users.forEach(user => {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-item';
+            userDiv.textContent = user === currentUsername ? `${user} (you)` : user;
+            usersList.appendChild(userDiv);
+        });
+    }
+
+    function toggleUsersList() {
+        const usersList = document.getElementById('users-list');
+        usersList.classList.toggle('hidden');
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        } else {
+            handleTyping();
+        }
+    }
+
+    function handleTyping() {
+        if (!isTyping && stompClient && currentRoomId) {
+            isTyping = true;
+            stompClient.send('/app/chat.typing', {}, JSON.stringify({
+                username: currentUsername,
+                roomId: currentRoomId,
+                isTyping: true
+            }));
+        }
+
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            stopTyping();
+        }, 1000);
+    }
+
+    function stopTyping() {
+        if (isTyping && stompClient && currentRoomId) {
+            isTyping = false;
+            stompClient.send('/app/chat.typing', {}, JSON.stringify({
+                username: currentUsername,
+                roomId: currentRoomId,
+                isTyping: false
+            }));
+        }
+        clearTimeout(typingTimer);
+    }
+
+    function showTypingIndicator(username, typing) {
+        const typingDiv = document.getElementById('typing');
+        if (typing) {
+            typingDiv.textContent = `${username} is typing...`;
+        } else {
+            typingDiv.textContent = '';
+        }
+    }
+
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Close users list when clicking outside
+    document.addEventListener('click', function(event) {
+        const usersList = document.getElementById('users-list');
+        const userCount = document.getElementById('user-count');
+
+        if (!usersList.contains(event.target) && event.target !== userCount) {
+            usersList.classList.add('hidden');
+        }
+    });
+
+    // Handle page unload
+    window.addEventListener('beforeunload', function() {
+        if (stompClient !== null) {
+            disconnect();
+        }
+    });
+
+    // Auto-reconnect logic
+    function setupReconnect() {
+        setTimeout(() => {
+            if (currentUsername && currentRoomId && (!stompClient || !stompClient.connected)) {
+                console.log('Attempting to reconnect...');
+                connect();
+            }
+        }, 5000);
+    }
+
+    // Handle connection errors
+    window.addEventListener('online', function() {
+        if (currentUsername && currentRoomId) {
+            setTimeout(connect, 1000);
+        }
+    });
+
+    window.addEventListener('offline', function() {
+        updateStatus('disconnected');
+    });
+</script>
+</body>
+</html>
