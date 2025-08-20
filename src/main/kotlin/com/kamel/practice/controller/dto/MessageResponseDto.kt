@@ -1,4 +1,4 @@
-package com.kamel.practice.controller
+package com.kamel.practice.controller.dto
 
 import com.kamel.practice.model.ChatMessage
 import com.kamel.practice.model.MessageType

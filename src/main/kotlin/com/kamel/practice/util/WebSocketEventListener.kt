@@ -1,7 +1,7 @@
 package com.kamel.practice.util
 
-import com.kamel.practice.controller.MessageRequestDto
-import com.kamel.practice.controller.MessageResponseDto
+import com.kamel.practice.controller.dto.MessageRequestDto
+import com.kamel.practice.controller.dto.MessageResponseDto
 import com.kamel.practice.model.MessageType
 import com.kamel.practice.service.ChatService
 import org.slf4j.LoggerFactory

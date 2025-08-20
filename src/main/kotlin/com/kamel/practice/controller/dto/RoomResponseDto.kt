@@ -1,4 +1,4 @@
-package com.kamel.practice.controller
+package com.kamel.practice.controller.dto
 
 import java.time.LocalDateTime
 

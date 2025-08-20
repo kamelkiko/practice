@@ -1,8 +1,8 @@
 package com.kamel.practice.service
 
-import com.kamel.practice.controller.MessageRequestDto
-import com.kamel.practice.controller.MessageResponseDto
-import com.kamel.practice.controller.RoomResponseDto
+import com.kamel.practice.controller.dto.MessageRequestDto
+import com.kamel.practice.controller.dto.MessageResponseDto
+import com.kamel.practice.controller.dto.RoomResponseDto
 import com.kamel.practice.model.ActiveUser
 import com.kamel.practice.model.ChatMessage
 import com.kamel.practice.model.ChatRoom
