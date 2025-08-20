@@ -116,7 +116,7 @@ class ChatService(
         activeUserRepository.deleteByUsernameAndRoomId(username, roomId)
 
         val activeUser = ActiveUser(
-            userName = username,
+            username = username,
             roomId = roomId
         )
 
@@ -137,7 +137,7 @@ class ChatService(
      */
     fun getActiveUsersInRoom(roomId: String): List<String> {
         return activeUserRepository.findByRoomId(roomId)
-            .map { it.userName }
+            .map { it.username }
     }
 
     /**

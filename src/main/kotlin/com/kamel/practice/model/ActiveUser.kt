@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 data class ActiveUser(
     @Id
     val id: ObjectId = ObjectId.get(),
-    val userName: String,
+    val username: String,
     val roomId: String,
     val joinedAt: LocalDateTime = LocalDateTime.now(),
     val lastSeen: LocalDateTime = LocalDateTime.now()
