@@ -33,9 +33,9 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
      */
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/ws")
-//            .setAllowedOriginPatterns("*") // Configure properly for production
-//            .withSockJS()
-//            .setHeartbeatTime(25000) // Send heartbeat every 25 seconds
-//            .setDisconnectDelay(30000) // Delay before considering connection lost
+            .setAllowedOriginPatterns("*") // Configure properly for production
+            .withSockJS()
+            .setHeartbeatTime(25000) // Send heartbeat every 25 seconds
+            .setDisconnectDelay(30000) // Delay before considering connection lost
     }
 }
