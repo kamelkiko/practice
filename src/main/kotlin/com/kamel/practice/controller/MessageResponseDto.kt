@@ -13,12 +13,12 @@ data class MessageResponseDto(
     val timestamp: LocalDateTime
 ) {
     companion object {
-        fun from(message: ChatMessage,type: MessageType): MessageResponseDto {
+        fun from(message: ChatMessage): MessageResponseDto {
             return MessageResponseDto(
                 id = message.id.toHexString() ?: "",
                 content = message.content,
                 sender = message.sender,
-                type = type,
+                type = message.messageType,
                 roomId = message.roomId,
                 timestamp = message.timestamp
             )
