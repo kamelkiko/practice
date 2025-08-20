@@ -1,6 +1,8 @@
 package com.kamel.practice.domain.service.car
 
 import com.kamel.practice.api.dto.BrandCountDto
+import com.kamel.practice.api.dto.CarDto
+import com.kamel.practice.api.dto.toDto
 import com.kamel.practice.data.model.Car
 import com.kamel.practice.data.repository.CarRepository
 import com.kamel.practice.domain.exception.CarNotFoundException
@@ -16,35 +18,38 @@ class CarService(
     private val carRepository: CarRepository,
     private val mongoTemplate: MongoTemplate,
 ) {
-    fun getAllCars() = carRepository.findAll()
+    fun getAllCars() = carRepository.findAll().map { it.toDto() }
 
     @Cacheable(value = ["cars"], key = "#id")
-    fun getCarByCode(code: String) = carRepository.findByCode(code)
+    fun getCarByCode(code: String) = carRepository.findByCode(code)?.toDto()
 
     @Cacheable(value = ["cars"], key = "#id")
-    fun getCarById(id: String) = carRepository.findById(ObjectId(id))
+    fun getCarById(id: String) = carRepository.findById(ObjectId(id)).map { it.toDto() }
 
-    fun getCarByBrand(brand: String) = carRepository.findByBrand(brand)
+    fun getCarByBrand(brand: String) = carRepository.findByBrand(brand).map { it.toDto() }
 
-    fun getCarByModel(model: String) = carRepository.findByModel(model)
+    fun getCarByModel(model: String) = carRepository.findByModel(model).map { it.toDto() }
 
-    fun getCarByYear(year: Int) = carRepository.findByYear(year)
+    fun getCarByYear(year: Int) = carRepository.findByYear(year).map { it.toDto() }
 
-    fun getCarByPrice(price: Double) = carRepository.findByPrice(price)
+    fun getCarByPrice(price: Double) = carRepository.findByPrice(price).map { it.toDto() }
 
-    fun getCarByColor(color: String) = carRepository.findByColor(color)
+    fun getCarByColor(color: String) = carRepository.findByColor(color).map { it.toDto() }
 
-    fun getCarByBrandAndModel(brand: String, model: String) = carRepository.findByBrandAndModel(brand, model)
+    fun getCarByBrandAndModel(brand: String, model: String) =
+        carRepository.findByBrandAndModel(brand, model).map { it.toDto() }
 
     fun getCarsByPriceRange(minPrice: Double, maxPrice: Double) =
-        carRepository.findByPriceBetween(minPrice, maxPrice)
+        carRepository.findByPriceBetween(minPrice, maxPrice).map { it.toDto() }
 
-    fun getCarsByYearRange(minYear: Int, maxYear: Int) = carRepository.findByYearBetween(minYear, maxYear)
+    fun getCarsByYearRange(minYear: Int, maxYear: Int) =
+        carRepository.findByYearBetween(minYear, maxYear).map { it.toDto() }
 
-    fun saveCar(car: Car) = carRepository.save(car)
+    fun saveCar(car: Car) = carRepository.save(car).toDto()
 
-    fun updateCar(id: String, car: Car): Car {
-        val existingCar = getCarById(id).orElseThrow { CarNotFoundException("Car with id $id not found") }
+    fun updateCar(id: String, car: Car): CarDto {
+        val existingCar =
+            carRepository.findById(ObjectId(id)).orElseThrow { CarNotFoundException("Car with id $id not found") }
         val updatedCar = existingCar.copy(
             code = car.code,
             brand = car.brand,
@@ -54,7 +59,7 @@ class CarService(
             color = car.color ?: existingCar.color,
             pictureUrl = car.pictureUrl ?: existingCar.pictureUrl
         )
-        return carRepository.save(updatedCar)
+        return carRepository.save(updatedCar).toDto()
     }
 
     fun deleteCarById(id: String) = carRepository.deleteById(ObjectId(id))
@@ -71,9 +76,10 @@ class CarService(
         return results.mappedResults
     }
 
-    fun updateCarImage(carId: String, imageUrl: String): Car {
-        val car = getCarById(carId).orElseThrow { CarNotFoundException("Car with id $carId not found") }
+    fun updateCarImage(carId: String, imageUrl: String): CarDto {
+        val car =
+            carRepository.findById(ObjectId(carId)).orElseThrow { CarNotFoundException("Car with id $carId not found") }
         val updatedCar = car.copy(pictureUrl = imageUrl)
-        return carRepository.save(updatedCar)
+        return carRepository.save(updatedCar).toDto()
     }
 }

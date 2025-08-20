@@ -1,12 +1,15 @@
 package com.kamel.practice.api.dto
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.kamel.practice.data.model.Car
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import org.bson.types.ObjectId
+import java.io.Serializable
 import java.util.*
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 data class CarDto(
     val id: String? = null,
     val code: String? = null,
@@ -19,7 +22,11 @@ data class CarDto(
     val price: Double,
     val color: String? = null,
     val pictureUrl: String? = null,
-) : java.io.Serializable
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}
 
 fun CarDto.toEntity(objectId: ObjectId? = null): Car {
     return Car(

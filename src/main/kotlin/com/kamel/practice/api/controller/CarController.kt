@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-
 @RestController
 @RequestMapping("/cars")
 class CarController(
@@ -46,7 +45,7 @@ class CarController(
     ): ServerResponse<String> {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
-        val resource: Resource = imageService.getImageResource(car.id.toHexString())
+        val resource: Resource = imageService.getImageResource(car.id ?: "")
         emailSenderService.sendEmailWithAttachment(
             to = emailRequest.to,
             subject = emailRequest.subject,
@@ -66,11 +65,10 @@ class CarController(
     ): ServerResponse<String> {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
-        val carDto = car.toDto()
         emailSenderService.sendEmail(
             to = emailRequest.to,
             subject = emailRequest.subject,
-            body = emailRequest.body + "\nCar Details:\n\n$carDto"
+            body = emailRequest.body + "\nCar Details:\n\n$car"
         )
         return sendSuccessResponse(
             data = "Email sent successfully to ${emailRequest.to}.",
@@ -82,7 +80,7 @@ class CarController(
     fun getAllCars(): ServerResponse<List<CarDto>> {
         val cars = carService.getAllCars()
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -92,7 +90,7 @@ class CarController(
         val car = carService.getCarByCode(code)
             ?: throw CarNotFoundException("Car with code $code not found.")
         return sendSuccessResponse(
-            data = car.toDto(),
+            data = car,
             successMessage = "Car retrieved successfully."
         )
     }
@@ -104,8 +102,8 @@ class CarController(
     ): Resource {
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
-        val metadata = imageService.getImageMetadata(car.id.toHexString())
-        val resource: Resource = imageService.getImageResource(car.id.toHexString())
+        val metadata = imageService.getImageMetadata(car.id ?: "")
+        val resource: Resource = imageService.getImageResource(car.id ?: "")
         response.contentType = metadata.mimeType
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalName + "\"")
         response.setContentLengthLong(metadata.size)
@@ -117,7 +115,7 @@ class CarController(
         val car = carService.getCarById(id)
             .orElseThrow { CarNotFoundException("Car with id $id not found.") }
         return sendSuccessResponse(
-            data = car.toDto(),
+            data = car,
             successMessage = "Car retrieved successfully."
         )
     }
@@ -126,7 +124,7 @@ class CarController(
     fun getCarByBrand(@PathVariable brand: String): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByBrand(brand)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -135,7 +133,7 @@ class CarController(
     fun getCarByModel(@PathVariable model: String): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByModel(model)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -144,7 +142,7 @@ class CarController(
     fun getCarByYear(@PathVariable year: Int): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByYear(year)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -153,7 +151,7 @@ class CarController(
     fun getCarByPrice(@PathVariable price: Double): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByPrice(price)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -162,7 +160,7 @@ class CarController(
     fun getCarByColor(@PathVariable color: String): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByColor(color)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -174,7 +172,7 @@ class CarController(
     ): ServerResponse<List<CarDto>> {
         val cars = carService.getCarByBrandAndModel(brand, model)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -186,7 +184,7 @@ class CarController(
     ): ServerResponse<List<CarDto>> {
         val cars = carService.getCarsByPriceRange(minPrice, maxPrice)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -198,7 +196,7 @@ class CarController(
     ): ServerResponse<List<CarDto>> {
         val cars = carService.getCarsByYearRange(minYear, maxYear)
         return sendSuccessResponse(
-            data = cars.map { it.toDto() },
+            data = cars,
             successMessage = "Cars retrieved successfully."
         )
     }
@@ -218,7 +216,7 @@ class CarController(
         }
         val car = carService.saveCar(carDto.copy(pictureUrl = imageMetaData?.storedName).toEntity(id))
         return sendSuccessResponse(
-            data = car.copy(pictureUrl = imageMetaData?.storedName).toDto(),
+            data = car.copy(pictureUrl = imageMetaData?.storedName),
             successMessage = "Car saved successfully.",
             code = HttpStatus.CREATED.value()
         )
@@ -240,7 +238,7 @@ class CarController(
         }
         val updatedCar = carService.updateCar(id, carDto.copy(pictureUrl = imageMetaData?.storedName).toEntity())
         return sendSuccessResponse(
-            data = updatedCar.toDto(),
+            data = updatedCar,
             successMessage = "Car updated successfully.",
             code = HttpStatus.ACCEPTED.value()
         )
