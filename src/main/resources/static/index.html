@@ -66,18 +66,19 @@
     }
 
     function renderRoomHtml(room) {
-      const imgTag = room.pictureUrl
-        ? `<img src="${room.pictureUrl}" alt="${room.name}"/>`
-        : `<img src="https://via.placeholder.com/60?text=No+Img" alt="No image"/>`;
+  const imgTag = room.pictureUrl
+    ? `<img src="http://localhost:8080/images/${room.pictureUrl}" alt="${room.name}"/>`
+    : `<img src="https://via.placeholder.com/60?text=No+Img" alt="No image"/>`;
 
-      return `
-        ${imgTag}
-        <div class="chatroom-details">
-          <b>${room.name}</b> (Owner: ${room.owner})<br>
-          ${room.description ?? ""}
-        </div>
-      `;
-    }
+  return `
+    ${imgTag}
+    <div class="chatroom-details">
+      <b>${room.name}</b> (Owner: ${room.owner})<br>
+      ${room.description ?? ""}
+    </div>
+  `;
+}
+
 
     function addRoom(room) {
       const div = document.createElement("div");

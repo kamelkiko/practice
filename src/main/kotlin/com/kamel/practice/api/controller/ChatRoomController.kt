@@ -188,18 +188,18 @@ class ChatRoomController(
     @Transactional
     fun deleteRoomImage(
         @RequestParam roomId: String
-    ): ServerResponse<String> {
-        chatRoomService.deletePicture(roomId)
+    ): ServerResponse<ChatRoomResponseDto> {
+        val room = chatRoomService.deletePicture(roomId)
         imageService.deleteImage(roomId, ImageMetadata.ImageType.ROOM)
         return ServerResponse.success(
-            data = "Room image deleted successfully",
+            data = room,
             successMessage = "Room image deleted successfully",
         ).also {
             messagingTemplate.convertAndSend(
                 "/topic/room",
                 ChatRoomEventDto(
                     type = ChatRoomEventDto.RoomEventType.UPDATE,
-                    data = it.data!!
+                    data = it.data?.copy(description = "deleted")!!
                 )
             )
         }
