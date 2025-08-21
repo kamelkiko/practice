@@ -1,15 +1,16 @@
 spring:
   application:
     name: spring-boot-practice
+
   jackson:
-    default-property-inclusion:
-      non-null: true
+    default-property-inclusion: non_null   # ✅ exclude null fields globally
+
   mail:
-   host: smtp.gmail.com
-   port: 587
-   properties:
-     mail.smtp.auth: true
-     mail.smtp.starttls.enable: true
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 management:
   endpoints:
