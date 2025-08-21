@@ -8,11 +8,9 @@ import org.hibernate.validator.constraints.Length
 data class UserUpdateDto(
     @field:Length(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
     val username: String? = null,
-    @field:NotBlank(message = "Email cannot be blank")
     @field:Length(max = 50, message = "Email must not exceed 50 characters")
     @field:Email(message = "Email should be valid")
     val email: String? = null,
-    @field:NotBlank(message = "Password cannot be blank")
     @field:Length(min = 6, message = "Password must be between 6 and 100 characters")
     @field:Pattern(
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,100}$",
