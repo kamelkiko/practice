@@ -3,6 +3,7 @@ package com.kamel.practice.data.model
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.Instant
 
 @Document("messages")
 data class ChatMessage(
@@ -11,8 +12,8 @@ data class ChatMessage(
     val roomId: String,
     val sender: String,
     val content: String,
-    val timestamp: Long = System.currentTimeMillis(),
-    val messageType: MessageType = MessageType.CHAT
+    val timestamp: Instant = Instant.now(),
+    val messageType: MessageType,
 ) {
     enum class MessageType {
         CHAT, JOIN, LEAVE
