@@ -12,7 +12,7 @@ data class ChatRoom(
     val name: String,
     val description: String? = null,
     val pictureUrl: String? = null,
-    val createdBy: String,
+    val createdBy: ObjectId,
     val createdAt: Instant = Instant.now(),
     val isActive: Boolean,
 )

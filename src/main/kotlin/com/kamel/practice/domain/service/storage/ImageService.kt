@@ -3,6 +3,7 @@ package com.kamel.practice.domain.service.storage
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.data.repository.ImageMetadataRepository
 import com.kamel.practice.domain.exception.ChatNotFoundException
+import org.bson.types.ObjectId
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -28,7 +29,7 @@ class ImageService(
             originalName = file.originalFilename!!,
             storedName = storagePath!!,
             mimeType = file.contentType!!,
-            ownerId = ownerId,
+            ownerId = ObjectId(ownerId),
             size = file.size,
             createdAt = Instant.now(),
             type = type
@@ -52,7 +53,7 @@ class ImageService(
             originalName = file.originalFilename!!,
             storedName = storagePath!!,
             mimeType = file.contentType!!,
-            ownerId = ownerId,
+            ownerId = ObjectId(ownerId),
             size = file.size,
             createdAt = Instant.now(),
             type = type

@@ -35,7 +35,7 @@ class ChatRoomService(
             ChatRoom(
                 name = name,
                 description = description,
-                createdBy = createdBy,
+                createdBy = ObjectId(createdBy),
                 isActive = isActive ?: true
             )
         )
@@ -106,7 +106,7 @@ class ChatRoomService(
     }
 
     private fun ChatRoom.toDtoWithOwner(): ChatRoomResponseDto {
-        val user = userRepository.findById(ObjectId(createdBy)).orElseThrow {
+        val user = userRepository.findById(createdBy).orElseThrow {
             ChatNotFoundException("User with ID $createdBy not found")
         }
         return ChatRoomResponseDto(
@@ -114,7 +114,7 @@ class ChatRoomService(
             name = name,
             description = description,
             pictureUrl = pictureUrl,
-            createdBy = createdBy,
+            createdBy = createdBy.toHexString(),
             owner = user?.username ?: "Unknown",
             createdAt = LocalDateTime.ofInstant(createdAt, ZoneId.systemDefault()),
             isActive = isActive

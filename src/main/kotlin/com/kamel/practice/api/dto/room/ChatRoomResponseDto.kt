@@ -20,7 +20,7 @@ fun ChatRoom.toDto(): ChatRoomResponseDto {
         name = name,
         description = description,
         pictureUrl = pictureUrl,
-        createdBy = createdBy,
+        createdBy = createdBy.toHexString(),
         createdAt = LocalDateTime.ofInstant(createdAt, java.time.ZoneId.systemDefault()),
         isActive = isActive,
         owner = ""

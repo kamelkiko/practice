@@ -9,8 +9,8 @@ import java.time.Instant
 data class ChatMessage(
     @Id
     val id: ObjectId = ObjectId.get(),
-    val roomId: String,
-    val senderId: String,
+    val roomId: ObjectId,
+    val senderId: ObjectId,
     val content: String,
     val timestamp: Instant = Instant.now(),
     val messageType: MessageType,

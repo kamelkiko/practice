@@ -10,18 +10,20 @@ data class ChatMessageResponseDto(
     val senderId: String,
     val content: String,
     val timestamp: LocalDateTime,
-    val senderUsername: String,
-    val senderProfilePictureUrl: String? = null
+    val senderUsername: String? = null,
+    val senderProfilePictureUrl: String? = null,
+    val messageType: ChatMessage.MessageType,
 )
 
 fun ChatMessage.toDto(): ChatMessageResponseDto {
     return ChatMessageResponseDto(
         id = id.toHexString(),
-        roomId = roomId,
-        senderId = senderId,
+        roomId = roomId.toHexString(),
+        senderId = senderId.toHexString(),
         content = content,
         timestamp = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault()),
         senderUsername = "",
-        senderProfilePictureUrl = ""
+        senderProfilePictureUrl = "",
+        messageType = messageType
     )
 }

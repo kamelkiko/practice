@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ChatMessageRepository : MongoRepository<ChatMessage, ObjectId> {
-    fun findByRoomIdOrderByTimestampDesc(roomId: String): List<ChatMessage>
-    fun findByRoomIdAndSenderIdOrderByTimestampDesc(roomId: String, senderId: String): List<ChatMessage>
 }

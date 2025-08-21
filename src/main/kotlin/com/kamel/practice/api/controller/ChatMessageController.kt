@@ -8,7 +8,6 @@ import com.kamel.practice.domain.service.message.ChatMessageService
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.handler.annotation.SendTo
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -17,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/messages")
 class ChatMessageController(
-    private val chatMessageService: ChatMessageService,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val chatMessageService: ChatMessageService
 ) {
     @MessageMapping("topic/chat.sendMessage")
     @SendTo("/topic/chat")
@@ -37,7 +35,7 @@ class ChatMessageController(
     fun getMessagesByRoomId(
         @PathVariable roomId: String
     ) = ServerResponse.success(
-        data = chatMessageService.getMessagesByRoomId(roomId),
+        data = chatMessageService.findMessagesByRoomId(roomId),
         successMessage = "Messages retrieved successfully",
     )
 }

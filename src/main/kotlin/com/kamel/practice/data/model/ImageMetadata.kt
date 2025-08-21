@@ -12,7 +12,7 @@ data class ImageMetadata(
     val originalName: String,
     val storedName: String,
     val mimeType: String,
-    val ownerId: String,
+    val ownerId: ObjectId,
     val size: Long,
     val type: ImageType,
     val createdAt: Instant = Instant.now(),
