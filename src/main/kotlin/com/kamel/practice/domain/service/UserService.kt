@@ -55,4 +55,15 @@ class UserService(
     fun getActiveUsers(): List<UserDto> {
         return userRepository.findAllByStatus(User.Status.ONLINE).map { it.toDto() }
     }
+
+    fun getUserById(userId: String): UserDto {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        return user.toDto()
+    }
+
+    fun getAllUsers(): List<UserDto> {
+        return userRepository.findAll().map { it.toDto() }
+    }
 }

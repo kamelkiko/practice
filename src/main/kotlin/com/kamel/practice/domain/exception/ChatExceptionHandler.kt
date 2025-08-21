@@ -13,7 +13,7 @@ class ChatExceptionHandler {
     @ExceptionHandler(ChatException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun onChatException(exception: ChatException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "An error occurred",
             code = HttpStatus.BAD_GATEWAY.value()
         )
@@ -22,7 +22,7 @@ class ChatExceptionHandler {
     @ExceptionHandler(ChatNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun onChatNotFoundException(exception: ChatNotFoundException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "Chat not found",
             code = HttpStatus.NOT_FOUND.value()
         )
@@ -31,7 +31,7 @@ class ChatExceptionHandler {
     @ExceptionHandler(ChatAlreadyExistsException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun onChatAlreadyExistsException(exception: ChatAlreadyExistsException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "Chat already exists",
             code = HttpStatus.BAD_REQUEST.value()
         )
@@ -43,7 +43,7 @@ class ChatExceptionHandler {
         val errors = ex.bindingResult.fieldErrors.associate {
             it.field to it.defaultMessage
         }.entries.joinToString()
-        return ServerResponse.Companion.error(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
+        return ServerResponse.error(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
     }
 }
 
@@ -52,7 +52,7 @@ class ChatWsExceptionHandler {
     @ExceptionHandler(ChatException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun onChatException(exception: ChatException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "An error occurred",
             code = HttpStatus.BAD_GATEWAY.value()
         )
@@ -61,7 +61,7 @@ class ChatWsExceptionHandler {
     @ExceptionHandler(ChatNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun onChatNotFoundException(exception: ChatNotFoundException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "Chat not found",
             code = HttpStatus.NOT_FOUND.value()
         )
@@ -70,7 +70,7 @@ class ChatWsExceptionHandler {
     @ExceptionHandler(ChatAlreadyExistsException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun onChatAlreadyExistsException(exception: ChatAlreadyExistsException): ServerResponse<String> {
-        return ServerResponse.Companion.error(
+        return ServerResponse.error(
             errorMessage = exception.message ?: "Chat already exists",
             code = HttpStatus.BAD_REQUEST.value()
         )
@@ -82,7 +82,7 @@ class ChatWsExceptionHandler {
         val errors = ex.bindingResult.fieldErrors.associate {
             it.field to it.defaultMessage
         }.entries.joinToString()
-        return ServerResponse.Companion.error(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
+        return ServerResponse.error(errorMessage = errors, code = HttpStatus.BAD_REQUEST.value())
     }
 }
 

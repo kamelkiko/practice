@@ -4,15 +4,16 @@ import com.kamel.practice.api.dto.UserLoginDto
 import com.kamel.practice.api.dto.UserRegisterDto
 import com.kamel.practice.domain.service.UserService
 import com.kamel.practice.util.ServerResponse
-import io.swagger.v3.oas.annotations.parameters.RequestBody
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 class UserController(
     private val userService: UserService
 ) {
+    private val logger = org.slf4j.LoggerFactory.getLogger(UserController::class.java)
+
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(
@@ -23,7 +24,7 @@ class UserController(
             userRegisterDto.email,
             userRegisterDto.password
         ),
-        successMessage = "User - ${userRegisterDto.username} registered successfully",
+        successMessage = "User registered successfully",
         code = HttpStatus.CREATED.value()
     )
 
@@ -33,6 +34,20 @@ class UserController(
     ) = ServerResponse.success(
         data = userService.loginUser(userLoginDto.email, userLoginDto.password),
         successMessage = "User logged in successfully",
+    )
+
+    @GetMapping("/{userId}")
+    fun getUserById(
+        @PathVariable userId: String
+    ) = ServerResponse.success(
+        data = userService.getUserById(userId),
+        successMessage = "User retrieved successfully",
+    )
+
+    @GetMapping
+    fun getAllUsers() = ServerResponse.success(
+        data = userService.getAllUsers(),
+        successMessage = "All users retrieved successfully",
     )
 
     @PostMapping("/auth/logout")
