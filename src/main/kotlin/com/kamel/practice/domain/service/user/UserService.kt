@@ -97,4 +97,17 @@ class UserService(
         }
         return user.id.toHexString()
     }
+
+    fun deleteUserPicture(
+        userId: String
+    ): UserDto {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        if (user.profilePictureUrl == null || user.profilePictureUrl.isEmpty()) {
+            throw ChatNotFoundException("User does not have a profile picture to delete")
+        }
+        val updatedUser = user.copy(profilePictureUrl = null)
+        return userRepository.save(updatedUser).toDto()
+    }
 }

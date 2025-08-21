@@ -77,6 +77,17 @@ class UserController(
         )
     }
 
+    @DeleteMapping("/image/delete")
+    fun deleteUserImage(
+        @RequestParam userId: String
+    ): ServerResponse<String> {
+        imageService.deleteImage(userId)
+        return ServerResponse.success(
+            data = "User image deleted successfully",
+            successMessage = "User image deleted successfully",
+        )
+    }
+
     @GetMapping("/active")
     fun getActiveUsers() = ServerResponse.success(
         data = userService.getActiveUsers(),

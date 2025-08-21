@@ -59,6 +59,13 @@ class ImageService(
         return repository.save(metadata)
     }
 
+    fun deleteImage(ownerId: String) {
+        val metadata = repository.findByOwnerId(ownerId)
+            ?: throw FileNotFoundException("File not found.")
+        storageService.deleteFile(metadata.storedName)
+        repository.deleteById(metadata.id)
+    }
+
     @Throws(IOException::class)
     fun getImageResource(ownerId: String): Resource {
         val metadata: ImageMetadata = getImageMetadata(ownerId)
