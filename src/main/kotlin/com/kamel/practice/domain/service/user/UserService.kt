@@ -1,7 +1,7 @@
 package com.kamel.practice.domain.service.user
 
-import com.kamel.practice.api.dto.UserDto
-import com.kamel.practice.api.dto.toDto
+import com.kamel.practice.api.dto.user.UserDto
+import com.kamel.practice.api.dto.user.toDto
 import com.kamel.practice.data.model.User
 import com.kamel.practice.data.repository.UserRepository
 import com.kamel.practice.domain.exception.ChatAlreadyExistsException
