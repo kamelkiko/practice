@@ -93,8 +93,8 @@ class UserController(
     fun deleteUserImage(
         @RequestParam userId: String
     ): ServerResponse<String> {
-        imageService.deleteImage(userId, ImageMetadata.ImageType.PROFILE)
         userService.deleteUserPicture(userId)
+        imageService.deleteImage(userId, ImageMetadata.ImageType.PROFILE)
         return ServerResponse.success(
             data = "User image deleted successfully",
             successMessage = "User image deleted successfully",
