@@ -17,7 +17,7 @@ class ImageService(
 ) {
 
     @Throws(IOException::class)
-    fun uploadImage(file: MultipartFile, ownerId: String): ImageMetadata {
+    fun uploadImage(file: MultipartFile, ownerId: String, type: ImageMetadata.ImageType): ImageMetadata {
         validateImage(file)
 
         val storagePath: String?
@@ -31,14 +31,15 @@ class ImageService(
             ownerId = ownerId,
             size = file.size,
             createdAt = Instant.now(),
+            type = type
         )
 
         return repository.save(metadata)
     }
 
-    fun replaceImage(file: MultipartFile, ownerId: String): ImageMetadata {
+    fun replaceImage(file: MultipartFile, ownerId: String, type: ImageMetadata.ImageType): ImageMetadata {
         validateImage(file)
-        val existingMetadata = repository.findByOwnerId(ownerId)
+        val existingMetadata = repository.findByOwnerIdAndType(ownerId, type)
         existingMetadata?.let {
             storageService.deleteFile(it.storedName)
             repository.deleteById(it.id)
@@ -54,27 +55,28 @@ class ImageService(
             ownerId = ownerId,
             size = file.size,
             createdAt = Instant.now(),
+            type = type
         )
 
         return repository.save(metadata)
     }
 
-    fun deleteImage(ownerId: String) {
-        val metadata = repository.findByOwnerId(ownerId)
+    fun deleteImage(ownerId: String, type: ImageMetadata.ImageType) {
+        val metadata = repository.findByOwnerIdAndType(ownerId, type)
             ?: throw FileNotFoundException("File not found.")
         storageService.deleteFile(metadata.storedName)
         repository.deleteById(metadata.id)
     }
 
     @Throws(IOException::class)
-    fun getImageResource(ownerId: String): Resource {
-        val metadata: ImageMetadata = getImageMetadata(ownerId)
+    fun getImageResource(ownerId: String, type: ImageMetadata.ImageType): Resource {
+        val metadata: ImageMetadata = getImageMetadata(ownerId, type)
         return storageService.getFileResource(metadata.storedName)
     }
 
     @Throws(IOException::class)
-    fun getImageMetadata(ownerId: String): ImageMetadata {
-        return repository.findByOwnerId(ownerId) ?: throw FileNotFoundException("File not found.")
+    fun getImageMetadata(ownerId: String, type: ImageMetadata.ImageType): ImageMetadata {
+        return repository.findByOwnerIdAndType(ownerId, type) ?: throw FileNotFoundException("File not found.")
     }
 
     private fun validateImage(file: MultipartFile) {

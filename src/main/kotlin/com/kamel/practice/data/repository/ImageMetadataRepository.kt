@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImageMetadataRepository : MongoRepository<ImageMetadata, ObjectId> {
-    fun findByOwnerId(ownerId: String): ImageMetadata?
+    fun findByOwnerIdAndType(ownerId: String, type: ImageMetadata.ImageType): ImageMetadata?
 }

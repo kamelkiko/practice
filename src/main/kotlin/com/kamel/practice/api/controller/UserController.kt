@@ -4,6 +4,7 @@ import com.kamel.practice.api.dto.ServerResponse
 import com.kamel.practice.api.dto.user.UserDto
 import com.kamel.practice.api.dto.user.UserLoginDto
 import com.kamel.practice.api.dto.user.UserRegisterDto
+import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.domain.exception.ChatException
 import com.kamel.practice.domain.service.storage.ImageService
 import com.kamel.practice.domain.service.user.UserService
@@ -81,7 +82,7 @@ class UserController(
     fun deleteUserImage(
         @RequestParam userId: String
     ): ServerResponse<String> {
-        imageService.deleteImage(userId)
+        imageService.deleteImage(userId, ImageMetadata.ImageType.PROFILE)
         return ServerResponse.success(
             data = "User image deleted successfully",
             successMessage = "User image deleted successfully",
@@ -104,7 +105,7 @@ class UserController(
             throw ChatException("File is empty or not provided.")
         }
         val imageMetaData = file.let {
-            imageService.uploadImage(it, userId)
+            imageService.uploadImage(it, userId, ImageMetadata.ImageType.PROFILE)
         }
         return ServerResponse.success(
             data = userService.addPicture(userId, imageMetaData.storedName),
@@ -122,7 +123,7 @@ class UserController(
             throw ChatException("File is empty or not provided.")
         }
         val imageMetaData = file.let {
-            imageService.replaceImage(it, userId)
+            imageService.replaceImage(it, userId, ImageMetadata.ImageType.PROFILE)
         }
         return ServerResponse.success(
             data = userService.addPicture(userId, imageMetaData.storedName),
@@ -136,8 +137,8 @@ class UserController(
         response: HttpServletResponse,
     ): Resource {
         val ownerId = userService.downloadUserPicture(userId)
-        val metadata = imageService.getImageMetadata(ownerId)
-        val resource = imageService.getImageResource(ownerId)
+        val metadata = imageService.getImageMetadata(ownerId, ImageMetadata.ImageType.PROFILE)
+        val resource = imageService.getImageResource(ownerId, ImageMetadata.ImageType.PROFILE)
         response.contentType = metadata.mimeType
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalName + "\"")
         response.setContentLengthLong(metadata.size)

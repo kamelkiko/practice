@@ -14,5 +14,11 @@ data class ImageMetadata(
     val mimeType: String,
     val ownerId: String,
     val size: Long,
+    val type: ImageType,
     val createdAt: Instant = Instant.now(),
-)
+) {
+    enum class ImageType {
+        PROFILE,
+        ROOM,
+    }
+}
