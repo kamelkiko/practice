@@ -1,6 +1,7 @@
 package com.kamel.practice.api.controller
 
 import com.kamel.practice.api.dto.ServerResponse
+import com.kamel.practice.api.dto.room.ChatRoomEventDto
 import com.kamel.practice.api.dto.room.ChatRoomRequestDto
 import com.kamel.practice.api.dto.room.ChatRoomResponseDto
 import com.kamel.practice.data.model.ImageMetadata
@@ -49,7 +50,11 @@ class ChatRoomController(
         code = HttpStatus.CREATED.value(),
     ).also {
         messagingTemplate.convertAndSend(
-            "/topic/room", it.data!!
+            "/topic/room",
+            ChatRoomEventDto(
+                type = ChatRoomEventDto.RoomEventType.ADD,
+                data = it.data!!
+            )
         )
     }
 
@@ -67,7 +72,11 @@ class ChatRoomController(
         successMessage = "Room updated successfully",
     ).also {
         messagingTemplate.convertAndSend(
-            "/topic/room", it.data!!
+            "/topic/room",
+            ChatRoomEventDto(
+                type = ChatRoomEventDto.RoomEventType.UPDATE,
+                data = it.data!!
+            )
         )
     }
 
@@ -79,7 +88,11 @@ class ChatRoomController(
         successMessage = "Room deleted successfully",
     ).also {
         messagingTemplate.convertAndSend(
-            "/topic/room", it.data!!
+            "/topic/room",
+            ChatRoomEventDto(
+                type = ChatRoomEventDto.RoomEventType.DELETE,
+                data = it.data!!
+            )
         )
     }
 
@@ -122,7 +135,11 @@ class ChatRoomController(
             successMessage = "Room image uploaded successfully",
         ).also {
             messagingTemplate.convertAndSend(
-                "/topic/room", it.data!!
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.UPDATE,
+                    data = it.data!!
+                )
             )
         }
     }
@@ -144,7 +161,11 @@ class ChatRoomController(
             successMessage = "Room image replaced successfully",
         ).also {
             messagingTemplate.convertAndSend(
-                "/topic/room", it.data!!
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.UPDATE,
+                    data = it.data!!
+                )
             )
         }
     }
@@ -175,7 +196,11 @@ class ChatRoomController(
             successMessage = "Room image deleted successfully",
         ).also {
             messagingTemplate.convertAndSend(
-                "/topic/room", it.data!!
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.UPDATE,
+                    data = it.data!!
+                )
             )
         }
     }
