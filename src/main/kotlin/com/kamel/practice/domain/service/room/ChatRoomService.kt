@@ -22,13 +22,13 @@ class ChatRoomService(
         }.toDto()
     }
 
-    fun createRoom(name: String, description: String?, createdBy: String): ChatRoomResponseDto {
+    fun createRoom(name: String, description: String?, createdBy: String, isActive: Boolean?): ChatRoomResponseDto {
         val room = chatRoomRepository.save(
             ChatRoom(
                 name = name,
                 description = description,
                 createdBy = createdBy,
-                isActive = true
+                isActive = isActive ?: true
             )
         )
         return room.toDto()

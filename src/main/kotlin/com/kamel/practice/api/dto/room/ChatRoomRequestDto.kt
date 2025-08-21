@@ -10,5 +10,7 @@ data class ChatRoomRequestDto(
     @field:NotBlank(message = "Name cannot be blank")
     @field:Length(min = 10, max = 100, message = "description must be between 10 and 100 characters")
     val description: String? = null,
-    val isActive: Boolean = true,
+    val isActive: Boolean? = null,
+    @field:NotBlank(message = "Owner id cannot be blank")
+    val createdBy: String,
 )
