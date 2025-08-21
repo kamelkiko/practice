@@ -10,6 +10,7 @@ import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -33,7 +34,9 @@ class ChatMessageController(
     }
 
     @GetMapping("/{roomId}")
-    fun getMessagesByRoomId(roomId: String) = ServerResponse.success(
+    fun getMessagesByRoomId(
+        @PathVariable roomId: String
+    ) = ServerResponse.success(
         data = chatMessageService.getMessagesByRoomId(roomId),
         successMessage = "Messages retrieved successfully",
     )
