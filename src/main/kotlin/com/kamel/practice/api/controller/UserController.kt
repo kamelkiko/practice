@@ -9,6 +9,7 @@ import com.kamel.practice.domain.exception.ChatException
 import com.kamel.practice.domain.service.storage.ImageService
 import com.kamel.practice.domain.service.user.UserService
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -26,7 +27,7 @@ class UserController(
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(
-        @RequestBody userRegisterDto: UserRegisterDto
+        @Valid @RequestBody userRegisterDto: UserRegisterDto
     ) = ServerResponse.success(
         data = userService.registerUser(
             userRegisterDto.username,
@@ -48,7 +49,7 @@ class UserController(
 
     @PostMapping("/auth/login")
     fun loginUser(
-        @RequestBody userLoginDto: UserLoginDto,
+        @Valid @RequestBody userLoginDto: UserLoginDto,
     ) = ServerResponse.success(
         data = userService.loginUser(userLoginDto.email, userLoginDto.password),
         successMessage = "User logged in successfully",
