@@ -7,6 +7,9 @@ import com.kamel.practice.api.dto.user.UserRegisterDto
 import com.kamel.practice.domain.exception.ChatException
 import com.kamel.practice.domain.service.storage.ImageService
 import com.kamel.practice.domain.service.user.UserService
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.transaction.annotation.Transactional
@@ -63,6 +66,17 @@ class UserController(
         successMessage = "User logged out successfully",
     )
 
+    @DeleteMapping("/{userId}")
+    fun deleteUser(
+        @PathVariable userId: String
+    ): ServerResponse<String> {
+        userService.deleteUser(userId)
+        return ServerResponse.success(
+            data = "User with ID $userId deleted successfully",
+            successMessage = "User deleted successfully",
+        )
+    }
+
     @GetMapping("/active")
     fun getActiveUsers() = ServerResponse.success(
         data = userService.getActiveUsers(),
@@ -103,5 +117,19 @@ class UserController(
             data = userService.addPicture(userId, imageMetaData.storedName),
             successMessage = "User image replaced successfully",
         )
+    }
+
+    @GetMapping("/image/download")
+    fun downloadUserImage(
+        @RequestParam userId: String,
+        response: HttpServletResponse,
+    ): Resource {
+        val ownerId = userService.downloadUserPicture(userId)
+        val metadata = imageService.getImageMetadata(ownerId)
+        val resource = imageService.getImageResource(ownerId)
+        response.contentType = metadata.mimeType
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalName + "\"")
+        response.setContentLengthLong(metadata.size)
+        return resource
     }
 }

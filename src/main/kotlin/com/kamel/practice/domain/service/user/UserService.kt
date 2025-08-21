@@ -77,4 +77,24 @@ class UserService(
         val updatedUser = user.copy(profilePictureUrl = pictureUrl)
         return userRepository.save(updatedUser).toDto()
     }
+
+    fun deleteUser(userId: String): UserDto {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        userRepository.delete(user)
+        return user.toDto()
+    }
+
+    fun downloadUserPicture(
+        userId: String
+    ): String {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        if (user.profilePictureUrl == null || user.profilePictureUrl.isEmpty()) {
+            throw ChatNotFoundException("User does not have a profile picture")
+        }
+        return user.id.toHexString()
+    }
 }
