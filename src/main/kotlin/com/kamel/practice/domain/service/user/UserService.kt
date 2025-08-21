@@ -1,4 +1,4 @@
-package com.kamel.practice.domain.service
+package com.kamel.practice.domain.service.user
 
 import com.kamel.practice.api.dto.UserDto
 import com.kamel.practice.api.dto.toDto
@@ -8,7 +8,7 @@ import com.kamel.practice.domain.exception.ChatAlreadyExistsException
 import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class UserService(
