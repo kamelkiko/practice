@@ -16,7 +16,7 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
             .setHeartbeatValue(longArrayOf(25000, 25000)) // Heartbeat interval for both client and server
             .setTaskScheduler(heartbeatTaskScheduler())
 
-        registry.setUserDestinationPrefix("/user")
+        //registry.setUserDestinationPrefix("/user")
     }
 
     private fun heartbeatTaskScheduler() = ThreadPoolTaskScheduler().apply {
