@@ -24,7 +24,7 @@ class ChatMessageService(
             .`as`("user")
 
         val aggregation = newAggregation(
-            match(Criteria.where("roomId").`is`(roomId)),
+            match(Criteria.where("roomId").`is`(ObjectId(roomId))),
             lookup,
             unwind("user", true),
             sort(org.springframework.data.domain.Sort.Direction.DESC, "timestamp"),

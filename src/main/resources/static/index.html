@@ -99,7 +99,7 @@
       const div = document.createElement("div");
       div.className = "message";
       div.innerHTML = `
-        <img src="${msg.senderProfilePictureUrl || 'https://via.placeholder.com/40'}" alt="${msg.senderUsername}">
+        <img src="http://localhost:8080/images/${msg.senderProfilePictureUrl || 'https://via.placeholder.com/40'}" alt="${msg.senderUsername}">
         <div class="message-content">
           <b>${msg.senderUsername}</b>
           ${msg.content}<br>
