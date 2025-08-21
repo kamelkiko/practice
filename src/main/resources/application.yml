@@ -1,6 +1,9 @@
 spring:
   application:
     name: spring-boot-practice
+  jackson:
+    default-property-inclusion:
+      non-null: true
 
 management:
   endpoints:
