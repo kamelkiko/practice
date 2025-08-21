@@ -4,6 +4,12 @@ spring:
   jackson:
     default-property-inclusion:
       non-null: true
+  mail:
+   host: smtp.gmail.com
+   port: 587
+   properties:
+     mail.smtp.auth: true
+     mail.smtp.starttls.enable: true
 
 management:
   endpoints:
