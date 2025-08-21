@@ -1,4 +1,4 @@
-package com.kamel.practice.data
+package com.kamel.practice.data.model
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
