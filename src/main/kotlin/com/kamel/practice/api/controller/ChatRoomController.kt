@@ -13,18 +13,19 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Controller
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
-@Controller
+@RestController
+@RequestMapping("/rooms")
 class ChatRoomController(
     private val chatRoomService: ChatRoomService,
     private val imageService: ImageService,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
-
-    @PostMapping("/rooms")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createRoom(
         @Valid @RequestBody room: ChatRoomRequestDto
@@ -37,9 +38,13 @@ class ChatRoomController(
         ),
         successMessage = "Room created successfully",
         code = HttpStatus.CREATED.value(),
-    )
+    ).also {
+        messagingTemplate.convertAndSend(
+            "/topic/room", it.data!!
+        )
+    }
 
-    @PutMapping("/rooms/{roomId}")
+    @PutMapping("/{roomId}")
     fun updateRoom(
         @Valid @RequestBody room: ChatRoomRequestDto,
         @PathVariable roomId: String,
@@ -51,17 +56,25 @@ class ChatRoomController(
             isActive = room.isActive,
         ),
         successMessage = "Room updated successfully",
-    )
+    ).also {
+        messagingTemplate.convertAndSend(
+            "/topic/room", it.data!!
+        )
+    }
 
-    @DeleteMapping("/rooms/{roomId}")
+    @DeleteMapping("/{roomId}")
     fun deleteRoom(
         @PathVariable roomId: String,
     ) = ServerResponse.success(
         data = chatRoomService.deleteRoom(roomId),
         successMessage = "Room deleted successfully",
-    )
+    ).also {
+        messagingTemplate.convertAndSend(
+            "/topic/room", it.data!!
+        )
+    }
 
-    @GetMapping("/rooms/{roomId}")
+    @GetMapping("/{roomId}")
     fun getRoomById(
         @PathVariable roomId: String,
     ) = ServerResponse.success(
@@ -69,13 +82,13 @@ class ChatRoomController(
         successMessage = "Room retrieved successfully",
     )
 
-    @GetMapping("/rooms")
+    @GetMapping
     fun getAllRooms() = ServerResponse.success(
         data = chatRoomService.getAllActiveRooms(),
         successMessage = "Rooms retrieved successfully",
     )
 
-    @GetMapping("/rooms/{ownerId}")
+    @GetMapping("/{ownerId}")
     fun getRoomsByOwner(
         @PathVariable ownerId: String,
     ) = ServerResponse.success(
@@ -83,7 +96,7 @@ class ChatRoomController(
         successMessage = "Rooms by owner retrieved successfully",
     )
 
-    @PostMapping("/rooms/image/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/image/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Transactional
     fun uploadRoomImage(
         @RequestParam roomId: String,
@@ -98,10 +111,14 @@ class ChatRoomController(
         return ServerResponse.success(
             data = chatRoomService.addPicture(roomId, imageMetaData.storedName),
             successMessage = "Room image uploaded successfully",
-        )
+        ).also {
+            messagingTemplate.convertAndSend(
+                "/topic/room", it.data!!
+            )
+        }
     }
 
-    @PatchMapping("/rooms/image/replace", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PatchMapping("/image/replace", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Transactional
     fun replaceRoomImage(
         @RequestParam roomId: String,
@@ -116,10 +133,14 @@ class ChatRoomController(
         return ServerResponse.success(
             data = chatRoomService.addPicture(roomId, imageMetaData.storedName),
             successMessage = "Room image replaced successfully",
-        )
+        ).also {
+            messagingTemplate.convertAndSend(
+                "/topic/room", it.data!!
+            )
+        }
     }
 
-    @GetMapping("/rooms/image/download")
+    @GetMapping("/image/download")
     fun downloadRoomImage(
         @RequestParam roomId: String,
         response: HttpServletResponse,
@@ -133,7 +154,7 @@ class ChatRoomController(
         return resource
     }
 
-    @DeleteMapping("/rooms/image/delete")
+    @DeleteMapping("/image/delete")
     @Transactional
     fun deleteRoomImage(
         @RequestParam roomId: String
@@ -143,6 +164,10 @@ class ChatRoomController(
         return ServerResponse.success(
             data = "Room image deleted successfully",
             successMessage = "Room image deleted successfully",
-        )
+        ).also {
+            messagingTemplate.convertAndSend(
+                "/topic/room", it.data!!
+            )
+        }
     }
 }
