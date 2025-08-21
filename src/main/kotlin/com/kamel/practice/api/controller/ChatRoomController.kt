@@ -25,6 +25,15 @@ class ChatRoomController(
     private val imageService: ImageService,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
+
+//    @MessageMapping("/topic/room.addUser")
+//    @SendTo("/topic/room")
+//    fun addUserToRoom(
+//        @Payload userJoinRoomDto: UserJoinRoomDto,
+//    ) {
+//
+//    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createRoom(
