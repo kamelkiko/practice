@@ -1,4 +1,4 @@
-package com.kamel.practice.util
+package com.kamel.practice.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry

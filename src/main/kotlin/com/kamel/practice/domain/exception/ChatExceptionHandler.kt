@@ -1,6 +1,6 @@
 package com.kamel.practice.domain.exception
 
-import com.kamel.practice.util.ServerResponse
+import com.kamel.practice.api.dto.ServerResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice

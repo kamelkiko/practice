@@ -1,4 +1,4 @@
-package com.kamel.practice.util
+package com.kamel.practice.api.dto
 
 data class ServerResponse<T>(
     val data: T?,
