@@ -81,6 +81,14 @@ class ChatRoomController(
                     data = it.data
                 )
             )
+        } else {
+            messagingTemplate.convertAndSend(
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.DELETE,
+                    data = it.data
+                )
+            )
         }
     }
 

@@ -92,6 +92,8 @@
       const div = document.getElementById("room-" + room.id);
       if (div) {
         div.innerHTML = renderRoomHtml(room);
+      } else{
+        addRoom(room);
       }
     }
 
