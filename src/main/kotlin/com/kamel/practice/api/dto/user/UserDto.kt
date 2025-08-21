@@ -20,6 +20,6 @@ fun User.toDto(): UserDto {
         email = email,
         createdAt = LocalDateTime.ofInstant(createdAt, ZoneId.systemDefault()),
         status = status,
-        profilePictureUrl = profilePictureUrl
+        profilePictureUrl = "images/$profilePictureUrl"
     )
 }
