@@ -6,10 +6,12 @@ import com.kamel.practice.data.model.ChatMessage
 import com.kamel.practice.data.repository.ChatMessageRepository
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.Aggregation.*
 import org.springframework.data.mongodb.core.aggregation.LookupOperation
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ChatMessageService(
@@ -66,13 +68,30 @@ class ChatMessageService(
         ).mappedResults
     }
 
-    fun saveMessage(roomId: String, senderId: String, content: String, type: ChatMessage.MessageType) =
-        chatMessageRepository.save(
+    @Transactional
+    fun saveMessage(
+        roomId: String,
+        senderId: String,
+        content: String,
+        type: ChatMessage.MessageType
+    ): ChatMessageResponseDto {
+        val saved = chatMessageRepository.save(
             ChatMessage(
                 roomId = ObjectId(roomId),
                 senderId = ObjectId(senderId),
                 content = content,
                 messageType = type
             )
-        ).toDto()
+        )
+
+        val matchStage = Aggregation.match(Criteria("_id").`is`(saved.id))
+        val lookupStage = lookup("User", "senderId", "_id", "sender")
+        val unwindSender = unwind("sender", true)
+
+        val aggregation = newAggregation(matchStage, lookupStage, unwindSender)
+
+        return mongoTemplate.aggregate(aggregation, "messages", ChatMessageResponseDto::class.java)
+            .uniqueMappedResult
+            ?: saved.toDto()
+    }
 }

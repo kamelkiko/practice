@@ -1,12 +1,16 @@
 package com.kamel.practice.api.controller
 
 import com.kamel.practice.api.dto.ServerResponse
+import com.kamel.practice.api.dto.message.ChatMessageResponseDto
 import com.kamel.practice.api.dto.room.ChatRoomEventDto
 import com.kamel.practice.api.dto.room.ChatRoomRequestDto
 import com.kamel.practice.api.dto.room.ChatRoomResponseDto
+import com.kamel.practice.api.dto.room.UserJoinRoomDto
+import com.kamel.practice.data.model.ChatMessage
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.domain.exception.ChatException
 import com.kamel.practice.domain.service.room.ChatRoomService
+import com.kamel.practice.domain.service.room.RoomUserService
 import com.kamel.practice.domain.service.storage.ImageService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -14,26 +18,80 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/rooms")
 class ChatRoomController(
     private val chatRoomService: ChatRoomService,
+    private val roomUserService: RoomUserService,
     private val imageService: ImageService,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
 
-//    @MessageMapping("/topic/room.addUser")
-//    @SendTo("/topic/room")
-//    fun addUserToRoom(
-//        @Payload userJoinRoomDto: UserJoinRoomDto,
-//    ) {
-//
-//    }
+    @MessageMapping("/topic/room.addUser")
+    @SendTo("/topic/room")
+    fun addUserToRoom(
+        @Payload userJoinRoomDto: UserJoinRoomDto,
+    ) {
+        roomUserService.addUserToRoom(
+            userId = userJoinRoomDto.userId,
+            roomId = userJoinRoomDto.roomId,
+        ).also { roomUser ->
+            messagingTemplate.convertAndSend(
+                "/topic/room",
+                ChatMessageResponseDto(
+                    roomId = roomUser.roomId,
+                    senderId = roomUser.userId,
+                    content = "${roomUser.username} has joined the room",
+                    timestamp = LocalDateTime.now(),
+                    messageType = ChatMessage.MessageType.JOIN,
+                    senderUsername = roomUser.username,
+                    senderProfilePictureUrl = roomUser.avatar,
+                    id = roomUser.id
+                )
+            )
+        }
+    }
+
+    @MessageMapping("/topic/room.removeUser")
+    @SendTo("/topic/room")
+    fun removeUserFromRoom(
+        @Payload userJoinRoomDto: UserJoinRoomDto,
+    ) {
+        val removedUser = roomUserService.removeUserFromRoom(
+            userId = userJoinRoomDto.userId,
+            roomId = userJoinRoomDto.roomId,
+        )
+        messagingTemplate.convertAndSend(
+            "/topic/room",
+            ChatMessageResponseDto(
+                roomId = userJoinRoomDto.roomId,
+                senderId = userJoinRoomDto.userId,
+                content = "${removedUser.username} has left the room",
+                timestamp = LocalDateTime.now(),
+                messageType = ChatMessage.MessageType.LEAVE,
+                senderUsername = removedUser.username,
+                senderProfilePictureUrl = removedUser.username,
+                id = removedUser.id
+            )
+        )
+    }
+
+    @GetMapping("/{roomId}/users")
+    fun getUsersInRoom(
+        @PathVariable roomId: String,
+    ) = ServerResponse.success(
+        data = roomUserService.getRoomUsersByRoomId(roomId),
+        successMessage = "Users in room retrieved successfully",
+    )
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
