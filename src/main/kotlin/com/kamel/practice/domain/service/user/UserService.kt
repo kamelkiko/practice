@@ -70,6 +70,9 @@ class UserService(
     ): UserDto {
         val user = userRepository.findByEmail(email)
         return if (user != null && user.password == password) {
+            if (user.otp != null && user.otp.isNotEmpty()) {
+                throw ChatNotFoundException("User needs to validate OTP before logging in")
+            }
             userRepository.save(user.copy(status = User.Status.ONLINE)).toDto()
         } else throw ChatNotFoundException("Invalid email or password")
     }
