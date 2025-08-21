@@ -2,131 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chat Room</title>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <title>Room Users</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 20px;
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .room-list, .user-list { margin-top: 20px; }
+        .user-card {
+          display: flex; align-items: center; gap: 10px;
+          padding: 5px; border-bottom: 1px solid #ccc;
         }
-        #messages {
-          border: 1px solid #ccc;
-          padding: 10px;
-          height: 400px;
-          overflow-y: scroll;
-          margin-bottom: 10px;
-          border-radius: 6px;
-        }
-        .message {
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 10px;
-        }
-        .message img {
-          width: 40px;
-          height: 40px;
+        .user-card img {
+          width: 40px; height: 40px; border-radius: 50%;
           object-fit: cover;
-          border-radius: 50%;
-          margin-right: 8px;
-        }
-        .message-content {
-          background: #f1f1f1;
-          padding: 6px 10px;
-          border-radius: 6px;
-          max-width: 70%;
-        }
-        .message-content b {
-          display: block;
-        }
-        #chat-form {
-          display: flex;
-          gap: 8px;
-        }
-        #chat-form input {
-          flex: 1;
-          padding: 6px;
-        }
-        #chat-form button {
-          padding: 6px 12px;
         }
     </style>
 </head>
 <body>
-<h2>Chat Room</h2>
-<div id="messages"></div>
+<h1>Room Users</h1>
 
-<form id="chat-form">
-    <input type="text" id="messageInput" placeholder="Type a message..." required/>
-    <button type="submit">Send</button>
-</form>
+<div>
+    <label for="roomSelect">Select Room:</label>
+    <select id="roomSelect"></select>
+    <button onclick="joinRoom()">Join Room</button>
+</div>
+
+<div class="user-list">
+    <h2>Users in Room</h2>
+    <div id="usersContainer"></div>
+</div>
 
 <script>
-    const roomId = "68a75faa53d3a27daa4a5e43";  // 🔹 TODO: change this or pass dynamically (query param)
-    const senderId = "68a720b9b41a6cb11a772eb8"; // 🔹 TODO: replace with logged-in user
-    const senderUsername = "John Doe"; // 🔹 optional if you want to display
+    const userId = "68a720b9b41a6cb11a772eb8"; // static userId
     let stompClient = null;
+    let currentRoomId = null;
 
-    const messagesDiv = document.getElementById("messages");
-    const form = document.getElementById("chat-form");
-    const messageInput = document.getElementById("messageInput");
+    async function fetchRooms() {
+      const res = await fetch("/rooms");
+      const json = await res.json();
+      const rooms = json.data;
+      const select = document.getElementById("roomSelect");
 
-    // Connect to WS
-    function connect() {
-      const socket = new SockJS("http://localhost:8080/ws");
+      select.innerHTML = "";
+      rooms.forEach(room => {
+        const option = document.createElement("option");
+        option.value = room.id;
+        option.textContent = room.name;
+        select.appendChild(option);
+      });
+    }
+
+    async function joinRoom() {
+      const roomId = document.getElementById("roomSelect").value;
+      currentRoomId = roomId;
+
+      // Notify backend via WebSocket
+      stompClient.send("/app/topic/room.addUser", {}, JSON.stringify({
+        roomId: roomId,
+        userId: userId
+      }));
+
+      // Fetch current users in room
+      fetchUsersInRoom(roomId);
+    }
+
+    async function fetchUsersInRoom(roomId) {
+      const res = await fetch(`/rooms/${roomId}/users`);
+      const json = await res.json();
+      renderUsers(json.data);
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById("usersContainer");
+      container.innerHTML = "";
+      users.forEach(user => {
+        const div = document.createElement("div");
+        div.className = "user-card";
+        div.innerHTML = `
+          <img src="http://localhost:8080/images/${user.avatar || 'https://via.placeholder.com/40'}" alt="avatar"/>
+          <span>${user.username}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function connectWebSocket() {
+      const socket = new SockJS("/ws");
       stompClient = Stomp.over(socket);
-      stompClient.debug = null;
-
-      stompClient.connect({}, function(frame) {
-        console.log("Connected: " + frame);
-
-        stompClient.subscribe("/topic/chat", function(msg) {
-          const chatMessage = JSON.parse(msg.body);
-          renderMessage(chatMessage);
+      stompClient.connect({}, () => {
+        stompClient.subscribe("/topic/room", (message) => {
+          const msg = JSON.parse(message.body);
+          if (msg.roomId === currentRoomId) {
+            // Refresh user list if join/leave event in current room
+            fetchUsersInRoom(currentRoomId);
+          }
         });
       });
     }
 
-    // Fetch old messages
-    async function loadMessages() {
-      const res = await fetch(`http://localhost:8080/messages/${roomId}`);
-      const json = await res.json();
-      json.data.forEach(renderMessage);
-    }
-
-    // Render message in UI
-    function renderMessage(msg) {
-      const div = document.createElement("div");
-      div.className = "message";
-      div.innerHTML = `
-        <img src="http://localhost:8080/images/${msg.senderProfilePictureUrl || 'https://via.placeholder.com/40'}" alt="${msg.senderUsername}">
-        <div class="message-content">
-          <b>${msg.senderUsername}</b>
-          ${msg.content}<br>
-          <small>${msg.timestamp}</small>
-        </div>
-      `;
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    // Send message via WS
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const content = messageInput.value.trim();
-      if (!content) return;
-
-      stompClient.send("/app/topic/chat.sendMessage", {}, JSON.stringify({
-        roomId: roomId,
-        senderId: senderId,
-        content: content
-      }));
-
-      messageInput.value = "";
-    });
-
-    connect();
-    loadMessages();
+    // Initialize
+    fetchRooms();
+    connectWebSocket();
 </script>
 </body>
 </html>

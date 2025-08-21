@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+        }
+        #messages {
+          border: 1px solid #ccc;
+          padding: 10px;
+          height: 400px;
+          overflow-y: scroll;
+          margin-bottom: 10px;
+          border-radius: 6px;
+        }
+        .message {
+          display: flex;
+          align-items: flex-start;
+          margin-bottom: 10px;
+        }
+        .message img {
+          width: 40px;
+          height: 40px;
+          object-fit: cover;
+          border-radius: 50%;
+          margin-right: 8px;
+        }
+        .message-content {
+          background: #f1f1f1;
+          padding: 6px 10px;
+          border-radius: 6px;
+          max-width: 70%;
+        }
+        .message-content b {
+          display: block;
+        }
+        #chat-form {
+          display: flex;
+          gap: 8px;
+        }
+        #chat-form input {
+          flex: 1;
+          padding: 6px;
+        }
+        #chat-form button {
+          padding: 6px 12px;
+        }
+    </style>
+</head>
+<body>
+<h2>Chat Room</h2>
+<div id="messages"></div>
+
+<form id="chat-form">
+    <input type="text" id="messageInput" placeholder="Type a message..." required/>
+    <button type="submit">Send</button>
+</form>
+
+<script>
+    const roomId = "68a75faa53d3a27daa4a5e43";  // 🔹 TODO: change this or pass dynamically (query param)
+    const senderId = "68a720b9b41a6cb11a772eb8"; // 🔹 TODO: replace with logged-in user
+    const senderUsername = "John Doe"; // 🔹 optional if you want to display
+    let stompClient = null;
+
+    const messagesDiv = document.getElementById("messages");
+    const form = document.getElementById("chat-form");
+    const messageInput = document.getElementById("messageInput");
+
+    // Connect to WS
+    function connect() {
+      const socket = new SockJS("http://localhost:8080/ws");
+      stompClient = Stomp.over(socket);
+      stompClient.debug = null;
+
+      stompClient.connect({}, function(frame) {
+        console.log("Connected: " + frame);
+
+        stompClient.subscribe("/topic/chat", function(msg) {
+          const chatMessage = JSON.parse(msg.body);
+          renderMessage(chatMessage);
+        });
+      });
+    }
+
+    // Fetch old messages
+    async function loadMessages() {
+      const res = await fetch(`http://localhost:8080/messages/${roomId}`);
+      const json = await res.json();
+      json.data.forEach(renderMessage);
+    }
+
+    // Render message in UI
+    function renderMessage(msg) {
+      const div = document.createElement("div");
+      div.className = "message";
+      div.innerHTML = `
+        <img src="http://localhost:8080/images/${msg.senderProfilePictureUrl || 'https://via.placeholder.com/40'}" alt="${msg.senderUsername}">
+        <div class="message-content">
+          <b>${msg.senderUsername}</b>
+          ${msg.content}<br>
+          <small>${msg.timestamp}</small>
+        </div>
+      `;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Send message via WS
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const content = messageInput.value.trim();
+      if (!content) return;
+
+      stompClient.send("/app/topic/chat.sendMessage", {}, JSON.stringify({
+        roomId: roomId,
+        senderId: senderId,
+        content: content
+      }));
+
+      messageInput.value = "";
+    });
+
+    connect();
+    loadMessages();
+</script>
+</body>
+</html>

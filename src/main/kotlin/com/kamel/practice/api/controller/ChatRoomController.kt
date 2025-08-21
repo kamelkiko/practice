@@ -40,23 +40,20 @@ class ChatRoomController(
     @SendTo("/topic/room")
     fun addUserToRoom(
         @Payload userJoinRoomDto: UserJoinRoomDto,
-    ) {
-        roomUserService.addUserToRoom(
+    ): ChatMessageResponseDto {
+        return roomUserService.addUserToRoom(
             userId = userJoinRoomDto.userId,
             roomId = userJoinRoomDto.roomId,
-        ).also { roomUser ->
-            messagingTemplate.convertAndSend(
-                "/topic/room",
-                ChatMessageResponseDto(
-                    roomId = roomUser.roomId,
-                    senderId = roomUser.userId,
-                    content = "${roomUser.username} has joined the room",
-                    timestamp = LocalDateTime.now(),
-                    messageType = ChatMessage.MessageType.JOIN,
-                    senderUsername = roomUser.username,
-                    senderProfilePictureUrl = roomUser.avatar,
-                    id = roomUser.id
-                )
+        ).let { roomUser ->
+            ChatMessageResponseDto(
+                roomId = roomUser.roomId,
+                senderId = roomUser.userId,
+                content = "${roomUser.username} has joined the room",
+                timestamp = LocalDateTime.now(),
+                messageType = ChatMessage.MessageType.JOIN,
+                senderUsername = roomUser.username,
+                senderProfilePictureUrl = roomUser.avatar,
+                id = roomUser.id
             )
         }
     }
@@ -65,23 +62,20 @@ class ChatRoomController(
     @SendTo("/topic/room")
     fun removeUserFromRoom(
         @Payload userJoinRoomDto: UserJoinRoomDto,
-    ) {
+    ): ChatMessageResponseDto {
         val removedUser = roomUserService.removeUserFromRoom(
             userId = userJoinRoomDto.userId,
             roomId = userJoinRoomDto.roomId,
         )
-        messagingTemplate.convertAndSend(
-            "/topic/room",
-            ChatMessageResponseDto(
-                roomId = userJoinRoomDto.roomId,
-                senderId = userJoinRoomDto.userId,
-                content = "${removedUser.username} has left the room",
-                timestamp = LocalDateTime.now(),
-                messageType = ChatMessage.MessageType.LEAVE,
-                senderUsername = removedUser.username,
-                senderProfilePictureUrl = removedUser.username,
-                id = removedUser.id
-            )
+        return ChatMessageResponseDto(
+            roomId = userJoinRoomDto.roomId,
+            senderId = userJoinRoomDto.userId,
+            content = "${removedUser.username} has left the room",
+            timestamp = LocalDateTime.now(),
+            messageType = ChatMessage.MessageType.LEAVE,
+            senderUsername = removedUser.username,
+            senderProfilePictureUrl = removedUser.username,
+            id = removedUser.id
         )
     }
 
