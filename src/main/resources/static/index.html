@@ -390,6 +390,11 @@
                 alert(`Error: ${error.error}`);
             });
 
+            stompClient.subscribe(`/queue/errors`, function (message) {
+                const error = JSON.parse(message.body);
+                alert(`Error: ${error.error}`);
+            });
+
             // Subscribe to user list
             stompClient.subscribe(`/user/queue/users`, function (message) {
                 const data = JSON.parse(message.body);
