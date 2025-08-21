@@ -1,7 +1,7 @@
 package com.kamel.practice.api.controller
 
-import com.kamel.practice.api.dto.UserLoginDto
-import com.kamel.practice.api.dto.UserRegisterDto
+import com.kamel.practice.api.dto.user.UserLoginDto
+import com.kamel.practice.api.dto.user.UserRegisterDto
 import com.kamel.practice.domain.service.user.UserService
 import com.kamel.practice.api.dto.ServerResponse
 import org.springframework.http.HttpStatus

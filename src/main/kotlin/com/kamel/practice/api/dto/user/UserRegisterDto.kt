@@ -1,4 +1,4 @@
-package com.kamel.practice.api.dto
+package com.kamel.practice.api.dto.user
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern

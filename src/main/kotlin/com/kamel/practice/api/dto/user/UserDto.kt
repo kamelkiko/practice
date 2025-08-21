@@ -1,7 +1,8 @@
-package com.kamel.practice.api.dto
+package com.kamel.practice.api.dto.user
 
 import com.kamel.practice.data.model.User
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 data class UserDto(
     val id: String,
@@ -17,7 +18,7 @@ fun User.toDto(): UserDto {
         id = id.toHexString(),
         username = username,
         email = email,
-        createdAt = LocalDateTime.ofInstant(createdAt, java.time.ZoneId.systemDefault()),
+        createdAt = LocalDateTime.ofInstant(createdAt, ZoneId.systemDefault()),
         status = status,
         profilePictureUrl = profilePictureUrl
     )
