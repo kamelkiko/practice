@@ -10,7 +10,7 @@ data class ChatMessage(
     @Id
     val id: ObjectId = ObjectId.get(),
     val roomId: String,
-    val sender: String,
+    val senderId: String,
     val content: String,
     val timestamp: Instant = Instant.now(),
     val messageType: MessageType,
