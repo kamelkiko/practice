@@ -4,23 +4,27 @@ import com.kamel.practice.api.dto.room.ChatRoomResponseDto
 import com.kamel.practice.api.dto.room.toDto
 import com.kamel.practice.data.model.ChatRoom
 import com.kamel.practice.data.repository.ChatRoomRepository
+import com.kamel.practice.data.repository.UserRepository
 import com.kamel.practice.domain.exception.ChatAlreadyExistsException
 import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Service
 class ChatRoomService(
     private val chatRoomRepository: ChatRoomRepository,
+    private val userRepository: UserRepository,
 ) {
     fun getAllActiveRooms(): List<ChatRoomResponseDto> {
-        return chatRoomRepository.findAllByIsActiveOrderByCreatedAtDesc(true).map { it.toDto() }
+        return chatRoomRepository.findAllByIsActiveOrderByCreatedAtDesc(true).map { it.toDtoWithOwner() }
     }
 
     fun getRoomById(roomId: String): ChatRoomResponseDto {
         return chatRoomRepository.findById(ObjectId(roomId)).orElseThrow {
             throw ChatNotFoundException("Chat room with ID $roomId not found")
-        }.toDto()
+        }.toDtoWithOwner()
     }
 
     fun createRoom(name: String, description: String?, createdBy: String, isActive: Boolean?): ChatRoomResponseDto {
@@ -35,7 +39,7 @@ class ChatRoomService(
                 isActive = isActive ?: true
             )
         )
-        return room.toDto()
+        return room.toDtoWithOwner()
     }
 
     fun updateRoom(roomId: String, name: String?, description: String?, isActive: Boolean?): ChatRoomResponseDto {
@@ -53,7 +57,7 @@ class ChatRoomService(
             isActive = isActive ?: room.isActive
         )
 
-        return chatRoomRepository.save(updatedRoom).toDto()
+        return chatRoomRepository.save(updatedRoom).toDtoWithOwner()
     }
 
     fun deleteRoom(roomId: String): ChatRoomResponseDto {
@@ -66,7 +70,7 @@ class ChatRoomService(
     }
 
     fun getRoomsByUserId(userId: String): List<ChatRoomResponseDto> {
-        return chatRoomRepository.findByCreatedByOrderByCreatedAtDesc(userId).map { it.toDto() }
+        return chatRoomRepository.findByCreatedByOrderByCreatedAtDesc(userId).map { it.toDtoWithOwner() }
     }
 
     fun addPicture(
@@ -77,7 +81,7 @@ class ChatRoomService(
             ChatNotFoundException("Chat room not found with ID: $roomId")
         }
         val updatedRoom = room.copy(pictureUrl = pictureUrl)
-        return chatRoomRepository.save(updatedRoom).toDto()
+        return chatRoomRepository.save(updatedRoom).toDtoWithOwner()
     }
 
     fun deletePicture(roomId: String): ChatRoomResponseDto {
@@ -88,7 +92,7 @@ class ChatRoomService(
             throw ChatNotFoundException("Chat room does not have a picture to delete")
         }
         val updatedRoom = room.copy(pictureUrl = null)
-        return chatRoomRepository.save(updatedRoom).toDto()
+        return chatRoomRepository.save(updatedRoom).toDtoWithOwner()
     }
 
     fun downloadRoomPicture(roomId: String): String {
@@ -99,5 +103,21 @@ class ChatRoomService(
             throw ChatNotFoundException("Chat room does not have a picture")
         }
         return room.id.toHexString()
+    }
+
+    private fun ChatRoom.toDtoWithOwner(): ChatRoomResponseDto {
+        val user = userRepository.findById(ObjectId(createdBy)).orElseThrow {
+            ChatNotFoundException("User with ID $createdBy not found")
+        }
+        return ChatRoomResponseDto(
+            id = id.toHexString(),
+            name = name,
+            description = description,
+            pictureUrl = pictureUrl,
+            createdBy = createdBy,
+            owner = user?.username ?: "Unknown",
+            createdAt = LocalDateTime.ofInstant(createdAt, ZoneId.systemDefault()),
+            isActive = isActive
+        )
     }
 }
