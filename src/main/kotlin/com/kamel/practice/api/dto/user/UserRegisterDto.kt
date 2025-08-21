@@ -1,5 +1,6 @@
 package com.kamel.practice.api.dto.user
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import org.hibernate.validator.constraints.Length
@@ -10,6 +11,7 @@ data class UserRegisterDto(
     val username: String,
     @field:NotBlank(message = "Email cannot be blank")
     @field:Length(max = 50, message = "Email must not exceed 50 characters")
+    @field:Email(message = "Email should be valid")
     val email: String,
     @field:NotBlank(message = "Password cannot be blank")
     @field:Length(min = 6, message = "Password must be between 6 and 100 characters")
