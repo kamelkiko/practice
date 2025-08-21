@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: spring-boot-practice
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,beans,loggers,threaddump
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
