@@ -49,13 +49,15 @@ class ChatRoomController(
         successMessage = "Room created successfully",
         code = HttpStatus.CREATED.value(),
     ).also {
-        messagingTemplate.convertAndSend(
-            "/topic/room",
-            ChatRoomEventDto(
-                type = ChatRoomEventDto.RoomEventType.ADD,
-                data = it.data!!
+        if (it.data?.isActive == true) {
+            messagingTemplate.convertAndSend(
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.ADD,
+                    data = it.data
+                )
             )
-        )
+        }
     }
 
     @PutMapping("/{roomId}")
@@ -71,13 +73,15 @@ class ChatRoomController(
         ),
         successMessage = "Room updated successfully",
     ).also {
-        messagingTemplate.convertAndSend(
-            "/topic/room",
-            ChatRoomEventDto(
-                type = ChatRoomEventDto.RoomEventType.UPDATE,
-                data = it.data!!
+        if (it.data?.isActive == true) {
+            messagingTemplate.convertAndSend(
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.UPDATE,
+                    data = it.data
+                )
             )
-        )
+        }
     }
 
     @DeleteMapping("/{roomId}")
@@ -87,13 +91,15 @@ class ChatRoomController(
         data = chatRoomService.deleteRoom(roomId),
         successMessage = "Room deleted successfully",
     ).also {
-        messagingTemplate.convertAndSend(
-            "/topic/room",
-            ChatRoomEventDto(
-                type = ChatRoomEventDto.RoomEventType.DELETE,
-                data = it.data!!
+        if (it.data?.isActive == true) {
+            messagingTemplate.convertAndSend(
+                "/topic/room",
+                ChatRoomEventDto(
+                    type = ChatRoomEventDto.RoomEventType.DELETE,
+                    data = it.data
+                )
             )
-        )
+        }
     }
 
     @GetMapping("/{roomId}")
@@ -134,13 +140,15 @@ class ChatRoomController(
             data = chatRoomService.addPicture(roomId, imageMetaData.storedName),
             successMessage = "Room image uploaded successfully",
         ).also {
-            messagingTemplate.convertAndSend(
-                "/topic/room",
-                ChatRoomEventDto(
-                    type = ChatRoomEventDto.RoomEventType.UPDATE,
-                    data = it.data!!
+            if (it.data?.isActive == true) {
+                messagingTemplate.convertAndSend(
+                    "/topic/room",
+                    ChatRoomEventDto(
+                        type = ChatRoomEventDto.RoomEventType.UPDATE,
+                        data = it.data
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -160,13 +168,15 @@ class ChatRoomController(
             data = chatRoomService.addPicture(roomId, imageMetaData.storedName),
             successMessage = "Room image replaced successfully",
         ).also {
-            messagingTemplate.convertAndSend(
-                "/topic/room",
-                ChatRoomEventDto(
-                    type = ChatRoomEventDto.RoomEventType.UPDATE,
-                    data = it.data!!
+            if (it.data?.isActive == true) {
+                messagingTemplate.convertAndSend(
+                    "/topic/room",
+                    ChatRoomEventDto(
+                        type = ChatRoomEventDto.RoomEventType.UPDATE,
+                        data = it.data
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -179,7 +189,10 @@ class ChatRoomController(
         val metadata = imageService.getImageMetadata(ownerId, ImageMetadata.ImageType.ROOM)
         val resource = imageService.getImageResource(ownerId, ImageMetadata.ImageType.ROOM)
         response.contentType = metadata.mimeType
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalName + "\"")
+        response.addHeader(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + metadata.originalName + "\""
+        )
         response.setContentLengthLong(metadata.size)
         return resource
     }
@@ -195,13 +208,15 @@ class ChatRoomController(
             data = room,
             successMessage = "Room image deleted successfully",
         ).also {
-            messagingTemplate.convertAndSend(
-                "/topic/room",
-                ChatRoomEventDto(
-                    type = ChatRoomEventDto.RoomEventType.UPDATE,
-                    data = it.data?.copy(description = "deleted")!!
+            if (it.data?.isActive == true) {
+                messagingTemplate.convertAndSend(
+                    "/topic/room",
+                    ChatRoomEventDto(
+                        type = ChatRoomEventDto.RoomEventType.UPDATE,
+                        data = it.data.copy(description = "deleted")
+                    )
                 )
-            )
+            }
         }
     }
 }
