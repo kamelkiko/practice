@@ -148,6 +148,12 @@ class UserService(
         val existingUser = userRepository.findById(ObjectId(userId)).orElseThrow {
             ChatNotFoundException("User not found with ID: $userId")
         }
+        if (user.username != null && userRepository.existsByUsername(user.username) && user.username != existingUser.username) {
+            throw ChatAlreadyExistsException("Username already exists - ${user.username}")
+        }
+        if (user.email != null && userRepository.existsByEmail(user.email) && user.email != existingUser.email) {
+            throw ChatAlreadyExistsException("Email already exists - ${user.email}")
+        }
         val updatedUser = existingUser.copy(
             username = user.username ?: existingUser.username,
             email = user.email ?: existingUser.email,

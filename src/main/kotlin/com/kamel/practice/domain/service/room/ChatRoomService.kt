@@ -43,6 +43,10 @@ class ChatRoomService(
             throw ChatNotFoundException("Chat room with ID $roomId not found")
         }
 
+        if (name != null && chatRoomRepository.existsByName(name) && room.name != name) {
+            throw ChatAlreadyExistsException("Chat room with name $name already exists")
+        }
+
         val updatedRoom = room.copy(
             name = name ?: room.name,
             description = description ?: room.description,
