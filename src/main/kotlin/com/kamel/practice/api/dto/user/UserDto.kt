@@ -1,9 +1,11 @@
 package com.kamel.practice.api.dto.user
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.kamel.practice.data.model.User
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class UserDto(
     val id: String,
     val username: String,
