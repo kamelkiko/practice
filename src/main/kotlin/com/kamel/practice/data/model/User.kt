@@ -16,6 +16,7 @@ data class User(
     val createdAt: Instant = Instant.now(),
     val profilePictureUrl: String? = null,
     val status: Status,
+    val otp: String? = null,
     //val phoneNumber: String? = null,
     //val bio: String? = null,
 ) {

@@ -6,6 +6,7 @@ import com.kamel.practice.data.model.User
 import com.kamel.practice.data.repository.UserRepository
 import com.kamel.practice.domain.exception.ChatAlreadyExistsException
 import com.kamel.practice.domain.exception.ChatNotFoundException
+import com.kamel.practice.domain.service.email.EmailService
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 import java.util.*
@@ -13,6 +14,7 @@ import java.util.*
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val emailService: EmailService,
 ) {
     fun registerUser(
         username: String,
@@ -25,14 +27,41 @@ class UserService(
         if (userRepository.existsByEmail(email)) {
             throw ChatAlreadyExistsException("Email already exists - $email")
         }
+
+        val otp = generateOtp()
+        emailService.sendEmail(email, "Your OTP Code", "Your OTP code is: $otp")
+
         val newUser = User(
             code = UUID.randomUUID().toString(),
             username = username,
             email = email,
             password = password,
-            status = User.Status.OFFLINE
+            status = User.Status.OFFLINE,
+            otp = otp
         )
         return userRepository.save(newUser).toDto()
+    }
+
+    fun validateOtp(
+        userId: String,
+        otp: String
+    ): UserDto {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            throw ChatNotFoundException("User not found with ID: $userId")
+        }
+        if (user.otp == null || user.otp.isEmpty()) {
+            throw ChatNotFoundException("No OTP found for user with ID: $userId")
+        }
+        if (user.otp != otp) {
+            throw ChatNotFoundException("Invalid OTP for email: ${user.email}")
+        }
+        // Clear OTP after successful validation
+        val updatedUser = user.copy(otp = null)
+        return userRepository.save(updatedUser).toDto()
+    }
+
+    private fun generateOtp(): String {
+        return (100000..999999).random().toString()
     }
 
     fun loginUser(

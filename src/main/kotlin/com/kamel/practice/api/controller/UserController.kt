@@ -33,8 +33,17 @@ class UserController(
             userRegisterDto.email,
             userRegisterDto.password
         ),
-        successMessage = "User registered successfully",
+        successMessage = "Otp sent successfully to ${userRegisterDto.email}",
         code = HttpStatus.CREATED.value()
+    )
+
+    @PostMapping("/auth/validate-otp")
+    fun validateOtp(
+        @RequestParam userId: String,
+        @RequestParam otp: String
+    ) = ServerResponse.success(
+        data = userService.validateOtp(userId, otp),
+        successMessage = "OTP validated successfully",
     )
 
     @PostMapping("/auth/login")
