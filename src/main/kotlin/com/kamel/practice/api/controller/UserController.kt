@@ -1,19 +1,24 @@
 package com.kamel.practice.api.controller
 
+import com.kamel.practice.api.dto.ServerResponse
+import com.kamel.practice.api.dto.user.UserDto
 import com.kamel.practice.api.dto.user.UserLoginDto
 import com.kamel.practice.api.dto.user.UserRegisterDto
+import com.kamel.practice.domain.exception.ChatException
+import com.kamel.practice.domain.service.storage.ImageService
 import com.kamel.practice.domain.service.user.UserService
-import com.kamel.practice.api.dto.ServerResponse
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userService: UserService
+    private val userService: UserService,
+    private val imageService: ImageService,
 ) {
-    private val logger = org.slf4j.LoggerFactory.getLogger(UserController::class.java)
-
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(
@@ -63,4 +68,40 @@ class UserController(
         data = userService.getActiveUsers(),
         successMessage = "Active users retrieved successfully",
     )
+
+    @PostMapping("/image/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Transactional
+    fun uploadUserImage(
+        @RequestParam userId: String,
+        @RequestParam file: MultipartFile?
+    ): ServerResponse<UserDto> {
+        if (file == null || file.isEmpty) {
+            throw ChatException("File is empty or not provided.")
+        }
+        val imageMetaData = file.let {
+            imageService.uploadImage(it, userId)
+        }
+        return ServerResponse.success(
+            data = userService.addPicture(userId, imageMetaData.storedName),
+            successMessage = "User image uploaded successfully",
+        )
+    }
+
+    @PatchMapping("/image/replace", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Transactional
+    fun replaceUserImage(
+        @RequestParam userId: String,
+        @RequestParam file: MultipartFile?
+    ): ServerResponse<UserDto> {
+        if (file == null || file.isEmpty) {
+            throw ChatException("File is empty or not provided.")
+        }
+        val imageMetaData = file.let {
+            imageService.replaceImage(it, userId)
+        }
+        return ServerResponse.success(
+            data = userService.addPicture(userId, imageMetaData.storedName),
+            successMessage = "User image replaced successfully",
+        )
+    }
 }

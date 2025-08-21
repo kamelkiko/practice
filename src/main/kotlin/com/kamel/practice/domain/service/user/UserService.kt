@@ -8,7 +8,7 @@ import com.kamel.practice.domain.exception.ChatAlreadyExistsException
 import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
 class UserService(
@@ -65,5 +65,16 @@ class UserService(
 
     fun getAllUsers(): List<UserDto> {
         return userRepository.findAll().map { it.toDto() }
+    }
+
+    fun addPicture(
+        userId: String,
+        pictureUrl: String
+    ): UserDto {
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        val updatedUser = user.copy(profilePictureUrl = pictureUrl)
+        return userRepository.save(updatedUser).toDto()
     }
 }

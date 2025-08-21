@@ -36,7 +36,7 @@ class ImageService(
         return repository.save(metadata)
     }
 
-    fun replaceImage(ownerId: String, file: MultipartFile): ImageMetadata {
+    fun replaceImage(file: MultipartFile, ownerId: String): ImageMetadata {
         validateImage(file)
         val existingMetadata = repository.findByOwnerId(ownerId)
         existingMetadata?.let {
