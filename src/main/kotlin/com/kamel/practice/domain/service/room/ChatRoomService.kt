@@ -4,6 +4,7 @@ import com.kamel.practice.api.dto.room.ChatRoomResponseDto
 import com.kamel.practice.api.dto.room.toDto
 import com.kamel.practice.data.model.ChatRoom
 import com.kamel.practice.data.repository.ChatRoomRepository
+import com.kamel.practice.domain.exception.ChatAlreadyExistsException
 import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
@@ -23,6 +24,9 @@ class ChatRoomService(
     }
 
     fun createRoom(name: String, description: String?, createdBy: String, isActive: Boolean?): ChatRoomResponseDto {
+        if (chatRoomRepository.existsByName(name)) {
+            throw ChatAlreadyExistsException("Chat room with name $name already exists")
+        }
         val room = chatRoomRepository.save(
             ChatRoom(
                 name = name,

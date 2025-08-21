@@ -97,7 +97,7 @@ class ChatRoomController(
         successMessage = "Rooms retrieved successfully",
     )
 
-    @GetMapping("/{ownerId}")
+    @GetMapping("owner/{ownerId}")
     fun getRoomsByOwner(
         @PathVariable ownerId: String,
     ) = ServerResponse.success(

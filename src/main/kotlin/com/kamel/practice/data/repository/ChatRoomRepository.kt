@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository
 interface ChatRoomRepository : MongoRepository<ChatRoom, ObjectId> {
     fun findByCreatedByOrderByCreatedAtDesc(createdBy: String): List<ChatRoom>
     fun findAllByIsActiveOrderByCreatedAtDesc(isActive: Boolean): List<ChatRoom>
+    fun existsByName(name: String): Boolean
 }
