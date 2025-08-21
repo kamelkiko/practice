@@ -1,11 +1,12 @@
 package com.kamel.practice.domain.service.storage
 
+import com.kamel.practice.domain.exception.ChatException
+import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
 import org.springframework.util.StreamUtils
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -47,11 +48,11 @@ class LocalImageStorageService(properties: ImageStorageProperties) {
         val normalizedRoot = rootPath.normalize().toAbsolutePath()
 
         if (!filePath.startsWith(normalizedRoot)) {
-            throw SecurityException("Access denied")
+            throw ChatException("Access denied")
         }
 
         if (!Files.exists(filePath)) {
-            throw FileNotFoundException("File not found")
+            throw ChatNotFoundException("File not found")
         }
 
         Files.delete(filePath)
@@ -63,11 +64,11 @@ class LocalImageStorageService(properties: ImageStorageProperties) {
         val normalizedRoot = rootPath.normalize().toAbsolutePath()
 
         if (!filePath.startsWith(normalizedRoot)) {
-            throw SecurityException("Access denied")
+            throw ChatException("Access denied")
         }
 
         if (!Files.exists(filePath)) {
-            throw FileNotFoundException("File not found")
+            throw ChatNotFoundException("File not found")
         }
 
         return UrlResource(filePath.toUri())

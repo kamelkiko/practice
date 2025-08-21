@@ -2,10 +2,10 @@ package com.kamel.practice.domain.service.storage
 
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.data.repository.ImageMetadataRepository
+import com.kamel.practice.domain.exception.ChatNotFoundException
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.Instant
 
@@ -63,7 +63,7 @@ class ImageService(
 
     fun deleteImage(ownerId: String, type: ImageMetadata.ImageType) {
         val metadata = repository.findByOwnerIdAndType(ownerId, type)
-            ?: throw FileNotFoundException("File not found.")
+            ?: throw ChatNotFoundException("File not found.")
         storageService.deleteFile(metadata.storedName)
         repository.deleteById(metadata.id)
     }
@@ -76,7 +76,7 @@ class ImageService(
 
     @Throws(IOException::class)
     fun getImageMetadata(ownerId: String, type: ImageMetadata.ImageType): ImageMetadata {
-        return repository.findByOwnerIdAndType(ownerId, type) ?: throw FileNotFoundException("File not found.")
+        return repository.findByOwnerIdAndType(ownerId, type) ?: throw ChatNotFoundException("File not found.")
     }
 
     private fun validateImage(file: MultipartFile) {
