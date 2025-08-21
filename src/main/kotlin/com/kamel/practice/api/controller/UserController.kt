@@ -4,6 +4,7 @@ import com.kamel.practice.api.dto.ServerResponse
 import com.kamel.practice.api.dto.user.UserDto
 import com.kamel.practice.api.dto.user.UserLoginDto
 import com.kamel.practice.api.dto.user.UserRegisterDto
+import com.kamel.practice.api.dto.user.UserUpdateDto
 import com.kamel.practice.data.model.ImageMetadata
 import com.kamel.practice.domain.exception.ChatException
 import com.kamel.practice.domain.service.storage.ImageService
@@ -76,6 +77,18 @@ class UserController(
         data = userService.logoutUser(userId),
         successMessage = "User logged out successfully",
     )
+
+    @PutMapping("/{userId}")
+    fun updateUser(
+        @PathVariable userId: String,
+        @Valid @RequestBody userDto: UserUpdateDto
+    ): ServerResponse<UserDto> {
+        val updatedUser = userService.updateUser(userId, userDto)
+        return ServerResponse.success(
+            data = updatedUser,
+            successMessage = "User updated successfully",
+        )
+    }
 
     @DeleteMapping("/{userId}")
     fun deleteUser(

@@ -1,6 +1,7 @@
 package com.kamel.practice.domain.service.user
 
 import com.kamel.practice.api.dto.user.UserDto
+import com.kamel.practice.api.dto.user.UserUpdateDto
 import com.kamel.practice.api.dto.user.toDto
 import com.kamel.practice.data.model.User
 import com.kamel.practice.data.repository.UserRepository
@@ -140,6 +141,18 @@ class UserService(
             throw ChatNotFoundException("User does not have a profile picture to delete")
         }
         val updatedUser = user.copy(profilePictureUrl = null)
+        return userRepository.save(updatedUser).toDto()
+    }
+
+    fun updateUser(userId: String, user: UserUpdateDto): UserDto {
+        val existingUser = userRepository.findById(ObjectId(userId)).orElseThrow {
+            ChatNotFoundException("User not found with ID: $userId")
+        }
+        val updatedUser = existingUser.copy(
+            username = user.username ?: existingUser.username,
+            email = user.email ?: existingUser.email,
+            password = user.password ?: existingUser.password
+        )
         return userRepository.save(updatedUser).toDto()
     }
 }
