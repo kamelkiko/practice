@@ -30,6 +30,7 @@ import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/rooms")
+@CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
 class ChatRoomController(
     private val chatRoomService: ChatRoomService,
     private val roomUserService: RoomUserService,

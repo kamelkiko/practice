@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
 class UserController(
     private val userService: UserService,
     private val imageService: ImageService,
