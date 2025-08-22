@@ -22,6 +22,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -40,6 +41,7 @@ class ChatRoomController(
     @SendTo("/topic/room")
     fun addUserToRoom(
         @Payload userJoinRoomDto: UserJoinRoomDto,
+        headerAccessor: StompHeaderAccessor,
     ): ChatMessageResponseDto {
         return roomUserService.addUserToRoom(
             userId = userJoinRoomDto.userId,
@@ -55,6 +57,9 @@ class ChatRoomController(
                 senderProfilePictureUrl = roomUser.avatar,
                 id = roomUser.id
             )
+        }.also {
+            headerAccessor.sessionAttributes?.put("userId", userJoinRoomDto.userId)
+            headerAccessor.sessionAttributes?.put("roomId", userJoinRoomDto.roomId)
         }
     }
 
@@ -62,6 +67,7 @@ class ChatRoomController(
     @SendTo("/topic/room")
     fun removeUserFromRoom(
         @Payload userJoinRoomDto: UserJoinRoomDto,
+        headerAccessor: StompHeaderAccessor,
     ): ChatMessageResponseDto {
         val removedUser = roomUserService.removeUserFromRoom(
             userId = userJoinRoomDto.userId,
@@ -76,7 +82,10 @@ class ChatRoomController(
             senderUsername = removedUser.username,
             senderProfilePictureUrl = removedUser.username,
             id = removedUser.id
-        )
+        ).also {
+            headerAccessor.sessionAttributes?.remove("userId")
+            headerAccessor.sessionAttributes?.remove("roomId")
+        }
     }
 
     @GetMapping("/{roomId}/users")
