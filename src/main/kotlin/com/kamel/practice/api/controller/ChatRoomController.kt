@@ -83,8 +83,8 @@ class ChatRoomController(
             senderProfilePictureUrl = removedUser.username,
             id = removedUser.id
         ).also {
-            headerAccessor.sessionAttributes?.remove("userId")
-            headerAccessor.sessionAttributes?.remove("roomId")
+            headerAccessor.sessionAttributes?.remove("userId", userJoinRoomDto.userId)
+            headerAccessor.sessionAttributes?.remove("roomId", userJoinRoomDto.roomId)
         }
     }
 

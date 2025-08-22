@@ -32,8 +32,7 @@ class WebSocketEventHandler(
         val userId = headerAccessor.sessionAttributes?.get("userId") as String?
         val roomId = headerAccessor.sessionAttributes?.get("roomId") as String?
         if (userId != null && roomId != null) {
-            roomUserService.removeUserFromRoom(roomId, userId)
-            val user = userService.getUserById(userId)
+            val user = roomUserService.removeUserFromRoom(roomId, userId)
             messagingTemplate.convertAndSend(
                 "/topic/room",
                 ChatMessageResponseDto(
@@ -43,10 +42,12 @@ class WebSocketEventHandler(
                     timestamp = LocalDateTime.now(),
                     messageType = ChatMessage.MessageType.LEAVE,
                     senderUsername = user.username,
-                    senderProfilePictureUrl = user.profilePictureUrl,
+                    senderProfilePictureUrl = user.avatar,
                     id = roomId
                 )
             )
+            headerAccessor.sessionAttributes?.remove("userId", userId)
+            headerAccessor.sessionAttributes?.remove("roomId", roomId)
         }
         println("Client disconnected: ${event.message}")
     }

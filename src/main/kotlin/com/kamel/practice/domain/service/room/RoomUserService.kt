@@ -52,13 +52,6 @@ class RoomUserService(
 
     @Transactional
     fun removeUserFromRoom(roomId: String, userId: String): RoomUserDto {
-        val deleted = roomUserRepository.deleteByRoomIdAndUserId(
-            ObjectId(roomId),
-            ObjectId(userId)
-        )
-        if (deleted == 0L) {
-            throw ChatNotFoundException("User not found in room")
-        }
         val aggregation = newAggregation(
             match(Criteria.where("roomId").`is`(ObjectId(roomId)).and("userId").`is`(ObjectId(userId))),
             lookup(
@@ -79,6 +72,13 @@ class RoomUserService(
         )
 
         val result = mongoTemplate.aggregate(aggregation, "room_users", RoomUserDto::class.java)
+        val deleted = roomUserRepository.deleteByRoomIdAndUserId(
+            ObjectId(roomId),
+            ObjectId(userId)
+        )
+        if (deleted == 0L) {
+            throw ChatNotFoundException("User not found in room")
+        }
         return result.uniqueMappedResult ?: throw ChatNotFoundException("Failed to load user after deleting from room")
     }
 
